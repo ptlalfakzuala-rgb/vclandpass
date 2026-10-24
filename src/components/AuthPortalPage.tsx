@@ -28,8 +28,7 @@ import {
   FileText,
   ShieldCheck,
   Building2,
-  Clock,
-  Server
+  Clock
 } from 'lucide-react';
 import { authenticateSecretary, saveOrUpdateUser } from '../services/userService';
 import { logActivity } from '../services/auditLogger';
@@ -40,7 +39,6 @@ interface AuthPortalPageProps {
   onOpenAuthorityMode: () => void;
   allPasses: LandPass[];
   onViewPass: (pass: LandPass) => void;
-  onOpenPhpStorage?: () => void;
 }
 
 export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
@@ -48,7 +46,6 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
   onOpenAuthorityMode,
   allPasses,
   onViewPass,
-  onOpenPhpStorage,
 }) => {
   const [activeTab, setActiveTab] = useState<'login' | 'register' | 'authority' | 'verify'>('login');
 
@@ -483,18 +480,6 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
               <ShieldAlert className="w-3.5 h-3.5" />
               <span>Full Authority</span>
             </button>
-
-            {onOpenPhpStorage && (
-              <button
-                type="button"
-                onClick={onOpenPhpStorage}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition bg-emerald-900/80 hover:bg-emerald-800 text-emerald-300 border border-emerald-700/60 shadow-sm"
-                title="Download Standalone PHP, MySQL, HTML & CSS App for Another Domain"
-              >
-                <Server className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">PHP/MySQL Package</span>
-              </button>
-            )}
           </div>
         </div>
       </header>

@@ -44,7 +44,12 @@ import { logActivity } from './services/auditLogger';
 import {
   savePassToRTDB,
   deletePassFromRTDB,
+  saveUserToRTDB,
+  saveVillageToRTDB,
   transferAllDataToRTDB,
+  subscribeToRTDBPasses,
+  subscribeToRTDBUsers,
+  subscribeToRTDBVillages,
 } from './services/realtimeSync';
 
 // UI Components
@@ -63,14 +68,6 @@ import { VerifyPassModal } from './components/VerifyPassModal';
 import { FullAuthorityModal } from './components/FullAuthorityModal';
 import { AuthorityKeyModal } from './components/AuthorityKeyModal';
 import { DeletePassModal } from './components/DeletePassModal';
-import { PhpStorageModal } from './components/PhpStorageModal';
-import {
-  savePassToPHP,
-  deletePassFromPHP,
-  saveVillageToPHP,
-  saveUserToPHP,
-  saveAuditLogToPHP,
-} from './services/phpStorageService';
 
 import {
   Search,
@@ -176,7 +173,6 @@ export default function App() {
   const [isVillageProfileOpen, setIsVillageProfileOpen] = useState<boolean>(false);
   const [isMandatoryProfileUpdate, setIsMandatoryProfileUpdate] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
-  const [isPhpStorageOpen, setIsPhpStorageOpen] = useState<boolean>(false);
   const [isAuditLogOpen, setIsAuditLogOpen] = useState<boolean>(false);
   const [isVerifyOpen, setIsVerifyOpen] = useState<boolean>(false);
 
@@ -260,11 +256,72 @@ export default function App() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Live Snapshot Listeners for passes and users
+    // Live Snapshot Listeners for passes and users (Firestore + Firebase Realtime Database)
     let unsubscribeFirestorePasses: (() => void) | null = null;
     let unsubscribeFirestoreUsers: (() => void) | null = null;
+    let unsubscribeRTDBPasses: (() => void) | null = null;
+    let unsubscribeRTDBUsers: (() => void) | null = null;
+    let unsubscribeRTDBVillages: (() => void) | null = null;
 
     if (navigator.onLine) {
+      // 1. Firebase Realtime Database Live Listeners
+      try {
+        unsubscribeRTDBPasses = subscribeToRTDBPasses((livePasses) => {
+          if (livePasses && livePasses.length > 0) {
+            setPasses(livePasses);
+            setCachedPasses(livePasses);
+          }
+        });
+
+        unsubscribeRTDBUsers = subscribeToRTDBUsers((liveUsers) => {
+          if (liveUsers && liveUsers.length > 0) {
+            setUsersList(liveUsers);
+            setCachedUsers(liveUsers);
+
+            let storedUser: UserProfile | null = null;
+            try {
+              const raw = localStorage.getItem('mizoram_vc_current_user');
+              if (raw) storedUser = JSON.parse(raw);
+            } catch {}
+
+            const activeIdentity = storedUser || currentUser;
+            if (activeIdentity) {
+              const updatedSelf = liveUsers.find(
+                (u) =>
+                  u.uid === activeIdentity.uid ||
+                  (u.username && activeIdentity.username && u.username.toLowerCase() === activeIdentity.username.toLowerCase())
+              );
+
+              if (updatedSelf) {
+                const hadPendingStatus = activeIdentity.status !== 'approved';
+                const isNowApproved = updatedSelf.status === 'approved';
+
+                if (updatedSelf.status !== activeIdentity.status || updatedSelf.role !== activeIdentity.role) {
+                  setCurrentUser(updatedSelf);
+                  localStorage.setItem('mizoram_vc_current_user', JSON.stringify(updatedSelf));
+                  if (hadPendingStatus && isNowApproved) {
+                    showNotification(
+                      '🎉 Your VC Secretary account has been Approved by Authority! Pass Issuing is now Live for Lifetime.',
+                      'success'
+                    );
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        unsubscribeRTDBVillages = subscribeToRTDBVillages((liveVillages) => {
+          if (liveVillages && liveVillages.length > 0) {
+            setVillages(liveVillages);
+            setCachedVillages(liveVillages);
+          }
+        });
+      } catch (err) {
+        console.warn('Realtime Database listener init:', err);
+      }
+
+      // 2. Firestore Snapshot Listeners
       try {
         const passesCol = collection(db, 'land_passes');
         unsubscribeFirestorePasses = onSnapshot(
@@ -337,6 +394,9 @@ export default function App() {
     }
 
     return () => {
+      if (unsubscribeRTDBPasses) unsubscribeRTDBPasses();
+      if (unsubscribeRTDBUsers) unsubscribeRTDBUsers();
+      if (unsubscribeRTDBVillages) unsubscribeRTDBVillages();
       if (unsubscribeFirestorePasses) unsubscribeFirestorePasses();
       if (unsubscribeFirestoreUsers) unsubscribeFirestoreUsers();
       window.removeEventListener('online', handleOnline);
@@ -355,9 +415,9 @@ export default function App() {
   const handleSaveVillageProfile = async (updatedConfig: VillageConfig) => {
     await saveVillageConfig(updatedConfig);
     try {
-      await saveVillageToPHP(updatedConfig);
+      await saveVillageToRTDB(cleanForFirestore(updatedConfig));
     } catch (e) {
-      console.warn('PHP Backend village write:', e);
+      console.warn('Realtime Database village write:', e);
     }
     setVillages((prev) => {
       const exists = prev.some((v) => v.id === updatedConfig.id);
@@ -622,13 +682,6 @@ export default function App() {
       console.warn('Realtime Database pass write:', e);
     }
 
-    // Mirror to PHP Backend storage if enabled
-    try {
-      await savePassToPHP(cleanedPass);
-    } catch (e) {
-      console.warn('PHP storage pass write:', e);
-    }
-
     await logActivity(
       isEdit ? 'UPDATE_PASS' : 'CREATE_PASS',
       id,
@@ -695,12 +748,6 @@ export default function App() {
       await deletePassFromRTDB(passToDelete.id);
     } catch (e) {
       console.warn('Realtime Database pass delete:', e);
-    }
-
-    try {
-      await deletePassFromPHP(passToDelete.id);
-    } catch (e) {
-      console.warn('PHP Backend pass delete:', e);
     }
 
     await logActivity(
@@ -831,7 +878,6 @@ export default function App() {
           onViewPass={(pass) => {
             setSelectedPassForPrint(pass);
           }}
-          onOpenPhpStorage={() => setIsPhpStorageOpen(true)}
         />
 
         {/* Printable Land Pass Modal (if public verifies and views certificate) */}
@@ -862,16 +908,6 @@ export default function App() {
           onApprovePass={handleApprovePass}
           onExitAuthorityMode={handleExitAuthorityMode}
         />
-
-        {/* PHP & MySQL Standalone App Modal */}
-        <PhpStorageModal
-          isOpen={isPhpStorageOpen}
-          onClose={() => setIsPhpStorageOpen(false)}
-          passes={perspectivePasses}
-          villages={villages}
-          users={usersList}
-          onNotify={showNotification}
-        />
       </>
     );
   }
@@ -898,7 +934,6 @@ export default function App() {
         onOpenAuth={() => {}}
         onLogout={handleLogout}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenPhpStorage={() => setIsPhpStorageOpen(true)}
         onOpenAddPass={() => {
           setEditingPass(null);
           setIsAddEditOpen(true);
@@ -1325,17 +1360,6 @@ export default function App() {
         settings={printSettings}
         onSaveSettings={handleSaveSettings}
         onTransferToRTDB={handleTransferToRTDB}
-        onOpenPhpStorage={() => setIsPhpStorageOpen(true)}
-      />
-
-      {/* 5b. PHP & MySQL Storage Backend Manager */}
-      <PhpStorageModal
-        isOpen={isPhpStorageOpen}
-        onClose={() => setIsPhpStorageOpen(false)}
-        passes={perspectivePasses}
-        villages={villages}
-        users={usersList}
-        onNotify={showNotification}
       />
 
       {/* 6. Audit Trail Modal */}

@@ -135,11 +135,16 @@ export async function updateUserStatus(
     rejectionReason: status === 'rejected' ? (rejectionReason || 'Details could not be verified') : '',
   };
 
-  // 4. Update Firestore directly
+  // 4. Update Firestore and Realtime Database directly
   if (navigator.onLine) {
     try {
       const payload = cleanForFirestore(updatedUser);
       await setDoc(doc(db, 'users', uid), payload, { merge: true });
+      try {
+        await saveUserToRTDB(payload);
+      } catch (err) {
+        console.warn('Realtime Database write user error:', err);
+      }
     } catch (e) {
       console.error('CRITICAL: Failed to update user status in Firestore:', e);
       throw e;
@@ -266,6 +271,20 @@ export async function approveLandPassLive(
         }),
         { merge: true }
       );
+
+      try {
+        const { rtdb } = await import('./firebase');
+        if (rtdb) {
+          const { ref, update } = await import('firebase/database');
+          await update(ref(rtdb, `land_passes/${passId}`), {
+            approvalStatus: 'live',
+            approvedAt: nowIso,
+            approvedBy: approverName,
+          });
+        }
+      } catch (err) {
+        console.warn('Realtime database pass approval update:', err);
+      }
     }
     return true;
   } catch (e) {

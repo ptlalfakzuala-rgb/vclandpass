@@ -8,8 +8,7 @@ import {
   Frame,
   Check,
   Printer,
-  Sparkles,
-  Server
+  Sparkles
 } from 'lucide-react';
 
 interface SettingsModalProps {
@@ -18,7 +17,6 @@ interface SettingsModalProps {
   settings: PrintSettings;
   onSaveSettings: (settings: PrintSettings) => void;
   onTransferToRTDB?: () => Promise<void>;
-  onOpenPhpStorage?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -27,7 +25,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   settings,
   onSaveSettings,
   onTransferToRTDB,
-  onOpenPhpStorage,
 }) => {
   const [localSettings, setLocalSettings] = React.useState<PrintSettings>(settings);
 
@@ -267,34 +264,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             )}
           </div>
 
-          {/* 5. PHP & MySQL Storage Backend */}
-          <div className="bg-purple-50/70 p-4 rounded-xl border border-purple-200/80 space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold uppercase tracking-wider text-purple-950 flex items-center gap-1.5">
-                <Server className="w-4 h-4 text-purple-700" />
-                <span>5. PHP &amp; MySQL Storage Backend</span>
-              </label>
-              <span className="text-[10px] bg-purple-200 text-purple-900 font-bold px-2 py-0.5 rounded-full font-mono">
-                cPanel / XAMPP
-              </span>
-            </div>
-            <p className="text-xs text-purple-900 leading-relaxed">
-              Store Land Passes, Village bylaws, Users, and Audit logs on your own PHP &amp; MySQL web server or export full SQL database dumps.
-            </p>
-            {onOpenPhpStorage && (
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onOpenPhpStorage();
-                }}
-                className="w-full py-2.5 bg-gradient-to-r from-purple-800 to-indigo-800 hover:from-purple-900 hover:to-indigo-900 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center justify-center gap-2"
-              >
-                <Server className="w-3.5 h-3.5" />
-                <span>Manage PHP &amp; MySQL Storage / Download PHP Package</span>
-              </button>
-            )}
-          </div>
+
         </div>
 
         {/* Footer */}

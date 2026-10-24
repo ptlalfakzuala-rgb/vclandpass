@@ -20,8 +20,7 @@ import {
   KeyRound,
   Clock,
   Camera,
-  FileText,
-  Server
+  FileText
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -40,7 +39,6 @@ interface NavbarProps {
   onOpenAuth: () => void;
   onLogout: () => void;
   onOpenSettings: () => void;
-  onOpenPhpStorage?: () => void;
   onOpenAddPass: () => void;
   onOpenAuditLog: () => void;
   onOpenVerify: () => void;
@@ -67,7 +65,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAuth,
   onLogout,
   onOpenSettings,
-  onOpenPhpStorage,
   onOpenAddPass,
   onOpenAuditLog,
   onOpenVerify,
@@ -207,18 +204,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Sliders className="w-4 h-4" />
             </button>
-
-            {/* PHP & MySQL Storage Manager */}
-            {onOpenPhpStorage && (
-              <button
-                onClick={onOpenPhpStorage}
-                className="p-1.5 bg-emerald-900 hover:bg-purple-900 text-purple-300 hover:text-white rounded-xl transition border border-emerald-800 flex items-center gap-1 shadow-2xs"
-                title="PHP & MySQL Storage Backend (cPanel / XAMPP)"
-              >
-                <Server className="w-4 h-4 text-purple-300" />
-                <span className="hidden xl:inline text-[10px] font-bold uppercase tracking-wider font-mono">PHP</span>
-              </button>
-            )}
 
             {/* User Profile Bar */}
             {currentUser ? (

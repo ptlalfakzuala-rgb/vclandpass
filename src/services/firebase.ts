@@ -57,13 +57,13 @@ try {
 
 export const db = firestoreDb;
 
-// Firebase Realtime Database: https://saiphai-grc-default-rtdb.firebaseio.com/
-export const RTDB_URL = "https://saiphai-grc-default-rtdb.firebaseio.com/";
+// Firebase Realtime Database: https://vclandpass.firebaseio.com/
+export const RTDB_URL = "https://vclandpass.firebaseio.com/";
 let realtimeDb: Database | null = null;
 try {
   realtimeDb = getDatabase(app, RTDB_URL);
 } catch (err) {
-  console.warn('Realtime database connection initialized with default url:', err);
+  console.warn('Realtime database connection initialized with specified url:', err);
   try {
     realtimeDb = getDatabase(app);
   } catch {}
