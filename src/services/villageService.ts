@@ -16,6 +16,8 @@ export const DEFAULT_CONDITIONS_MIZO = `CONDITIONS & RESTRICTION
 5. VC ten tul bik thil ah an cancel thei ang.
 6. Vantlang leh sawrkar pawimawh ah a tul angin zangnadawmna pe lo in hman theih a ni ang.`;
 
+export const DEFAULT_VILLAGE_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
+
 export const DEFAULT_EMPTY_VILLAGE: VillageConfig = {
   id: 'village_default',
   villageName: 'VILLAGE COUNCIL',
@@ -31,6 +33,7 @@ export const DEFAULT_EMPTY_VILLAGE: VillageConfig = {
   conditionsAndTerms: DEFAULT_CONDITIONS_MIZO,
   presidentName: '',
   secretaryName: '',
+  emblemLogoUrl: DEFAULT_VILLAGE_EMBLEM_URL,
 };
 
 export function createDefaultVillageForUser(user: UserProfile): VillageConfig {
@@ -52,15 +55,26 @@ export function createDefaultVillageForUser(user: UserProfile): VillageConfig {
     conditionsAndTerms: DEFAULT_CONDITIONS_MIZO,
     presidentName: '',
     secretaryName: user.displayName || user.username || '',
+    emblemLogoUrl: DEFAULT_VILLAGE_EMBLEM_URL,
   };
 }
 
 export function getVillageForUser(user: UserProfile | null, villages: VillageConfig[]): VillageConfig {
-  if (!user) return DEFAULT_EMPTY_VILLAGE;
+  if (!user) {
+    return {
+      ...DEFAULT_EMPTY_VILLAGE,
+      emblemLogoUrl: DEFAULT_VILLAGE_EMBLEM_URL,
+    };
+  }
   
   const targetId = user.villageId || `village_${user.uid}`;
   const matchedById = villages.find((v) => v.id === targetId || v.id === user.villageId);
-  if (matchedById) return matchedById;
+  if (matchedById) {
+    return {
+      ...matchedById,
+      emblemLogoUrl: matchedById.emblemLogoUrl || DEFAULT_VILLAGE_EMBLEM_URL,
+    };
+  }
 
   // Only match by name if explicitly belonging to this user's village id or created for them
   if (user.villageName) {
@@ -69,10 +83,32 @@ export function getVillageForUser(user: UserProfile | null, villages: VillageCon
         v.id === targetId ||
         (v.id.includes(user.uid) && v.villageName.toLowerCase() === user.villageName?.toLowerCase())
     );
-    if (matchedByName) return matchedByName;
+    if (matchedByName) {
+      return {
+        ...matchedByName,
+        emblemLogoUrl: matchedByName.emblemLogoUrl || DEFAULT_VILLAGE_EMBLEM_URL,
+      };
+    }
   }
 
   return createDefaultVillageForUser(user);
+}
+
+/**
+ * Checks if the Village Council profile configuration has been completed.
+ * "do not make it live New Land Pass Issue until Configure Village Profile is done"
+ */
+export function isVillageProfileConfigured(village?: VillageConfig | null): boolean {
+  if (!village) return false;
+  if (village.isConfigured === true) return true;
+  const name = village.villageName?.trim() || '';
+  const isGeneric = !name || name === 'VILLAGE COUNCIL' || name === 'Mizoram Generic';
+  const hasBlock = Boolean(village.blockName && village.blockName.trim());
+  const hasDistrict = Boolean(village.districtName && village.districtName.trim());
+  const hasPresident = Boolean(village.presidentName && village.presidentName.trim());
+  const hasPrefixes = Boolean(village.huanRamPrefix && village.inHmunPrefix);
+  const hasTerms = Boolean(village.conditionsAndTerms && village.conditionsAndTerms.trim());
+  return !isGeneric && hasBlock && hasDistrict && hasPresident && hasPrefixes && hasTerms;
 }
 
 export async function getCachedVillages(): Promise<VillageConfig[]> {

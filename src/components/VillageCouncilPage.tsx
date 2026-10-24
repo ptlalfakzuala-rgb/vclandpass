@@ -45,7 +45,8 @@ export const VillageCouncilPage: React.FC<VillageCouncilPageProps> = ({
   const [huanRamPrefix, setHuanRamPrefix] = useState<string>('');
   const [inHmunPrefix, setInHmunPrefix] = useState<string>('');
   const [logoUrl, setLogoUrl] = useState<string>('');
-  const [emblemLogoUrl, setEmblemLogoUrl] = useState<string>('');
+  const DEFAULT_LAD_EMBLEM = '/assets/aistudio/images__3__109dbb99.jpg';
+  const [emblemLogoUrl, setEmblemLogoUrl] = useState<string>(DEFAULT_LAD_EMBLEM);
   const [conditionsAndTerms, setConditionsAndTerms] = useState<string>('');
   const [startingPassNumber, setStartingPassNumber] = useState<number | string>(1001);
   const [startingHuanRamNumber, setStartingHuanRamNumber] = useState<number | string>(1001);
@@ -73,7 +74,7 @@ export const VillageCouncilPage: React.FC<VillageCouncilPageProps> = ({
       setStartingHuanRamNumber(currentVillage.startingHuanRamNumber || currentVillage.startingPassNumber || 1001);
       setStartingInHmunNumber(currentVillage.startingInHmunNumber || currentVillage.startingPassNumber || 1001);
       setLogoUrl(currentVillage.logoUrl || '');
-      setEmblemLogoUrl(currentVillage.emblemLogoUrl || '');
+      setEmblemLogoUrl(currentVillage.emblemLogoUrl || DEFAULT_LAD_EMBLEM);
       setConditionsAndTerms(currentVillage.conditionsAndTerms || '');
     }
   }, [currentVillage, currentUser]);
@@ -197,8 +198,9 @@ export const VillageCouncilPage: React.FC<VillageCouncilPageProps> = ({
       startingHuanRamNumber: parsedStartHR,
       startingInHmunNumber: parsedStartIH,
       logoUrl: logoUrl || undefined,
-      emblemLogoUrl: emblemLogoUrl || undefined,
+      emblemLogoUrl: emblemLogoUrl || DEFAULT_LAD_EMBLEM,
       conditionsAndTerms: conditionsAndTerms.trim() || currentVillage.conditionsAndTerms,
+      isConfigured: true,
       updatedAt: new Date().toISOString(),
     };
 
@@ -396,14 +398,14 @@ export const VillageCouncilPage: React.FC<VillageCouncilPageProps> = ({
                         <Camera className="w-3.5 h-3.5" />
                         <span>{emblemLogoUrl ? 'Change Emblem' : 'Upload Emblem'}</span>
                       </button>
-                      {emblemLogoUrl && (
+                      {emblemLogoUrl && emblemLogoUrl !== DEFAULT_LAD_EMBLEM && (
                         <button
                           type="button"
-                          onClick={() => setEmblemLogoUrl('')}
+                          onClick={() => setEmblemLogoUrl(DEFAULT_LAD_EMBLEM)}
                           className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition flex items-center gap-1"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          <span>Remove</span>
+                          <span>Reset to Default</span>
                         </button>
                       )}
                     </div>

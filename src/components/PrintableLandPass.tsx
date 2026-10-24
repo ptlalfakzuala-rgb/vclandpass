@@ -61,11 +61,17 @@ export const PrintableLandPass: React.FC<PrintableLandPassProps> = ({
   );
   const [isEditingPresident, setIsEditingPresident] = useState<boolean>(false);
 
-  // Emblem Logo state
+const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
+
+  // Emblem Logo state (Default: Official LAD Government of Mizoram Emblem)
   const [emblemLogoUrl, setEmblemLogoUrl] = useState<string>(
-    village.emblemLogoUrl || ''
+    village.emblemLogoUrl || DEFAULT_LAD_EMBLEM_URL
   );
   const emblemInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setEmblemLogoUrl(village.emblemLogoUrl || DEFAULT_LAD_EMBLEM_URL);
+  }, [village.emblemLogoUrl]);
 
   // Direct verification URL
   const verificationUrl = `${window.location.origin}/?verify=${encodeURIComponent(pass.passNumber)}`;
@@ -187,10 +193,10 @@ export const PrintableLandPass: React.FC<PrintableLandPassProps> = ({
   };
 
   const handleRemoveEmblem = async () => {
-    setEmblemLogoUrl('');
+    setEmblemLogoUrl(DEFAULT_LAD_EMBLEM_URL);
     const updatedVillage: VillageConfig = {
       ...village,
-      emblemLogoUrl: '',
+      emblemLogoUrl: DEFAULT_LAD_EMBLEM_URL,
     };
     await saveVillageConfig(updatedVillage);
     onVillageUpdated?.(updatedVillage);
@@ -450,46 +456,14 @@ export const PrintableLandPass: React.FC<PrintableLandPassProps> = ({
                   onClick={() => emblemInputRef.current?.click()}
                   title="Click to Change Emblem Logo"
                 >
-                  {emblemLogoUrl ? (
-                    <img
-                      src={emblemLogoUrl}
-                      alt="Official Emblem Logo"
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    /* Dignified Official State Emblem Graphic */
-                    <div className="flex flex-col items-center justify-center p-1 text-center w-full h-full">
-                      <div className="w-12 h-12 rounded-full border-2 border-neutral-800 p-0.5 flex items-center justify-center bg-amber-50">
-                        <svg
-                          viewBox="0 0 100 100"
-                          className="w-10 h-10 text-neutral-900 fill-current"
-                        >
-                          {/* Ashoka Chakra / State Emblem Silhouette */}
-                          <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="4" />
-                          <circle cx="50" cy="50" r="10" fill="currentColor" />
-                          {/* 24 spokes representation */}
-                          {[...Array(12)].map((_, i) => (
-                            <line
-                              key={i}
-                              x1="50"
-                              y1="10"
-                              x2="50"
-                              y2="90"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              transform={`rotate(${i * 15} 50 50)`}
-                            />
-                          ))}
-                        </svg>
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-neutral-900 mt-1">
-                        STATE EMBLEM
-                      </span>
-                      <span className="text-[9px] text-neutral-600 font-medium">
-                        Govt of Mizoram
-                      </span>
-                    </div>
-                  )}
+                  <img
+                    src={emblemLogoUrl || DEFAULT_LAD_EMBLEM_URL}
+                    alt="Local Administration Department, Government of Mizoram Official Emblem"
+                    className="w-full h-full object-contain"
+                  />
+                  <div className="absolute inset-0 bg-black/40 text-white text-[10px] font-bold rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition print:hidden">
+                    Change Emblem
+                  </div>
 
                   {/* Hover prompt in preview mode (hidden in print) */}
                   <div className="absolute inset-0 bg-neutral-900/60 text-white rounded-xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition print:hidden">

@@ -30,6 +30,7 @@ import {
   saveVillageConfig,
   fetchVillagesFromCloud,
   getVillageForUser,
+  isVillageProfileConfigured,
 } from './services/villageService';
 import {
   fetchUsersFromCloud,
@@ -117,6 +118,7 @@ const DEFAULT_GENERIC_VILLAGE: VillageConfig = {
 5. VC ten tul bik thil ah an cancel thei ang.
 6. Vantlang leh sawrkar pawimawh ah a tul angin zangnadawmna pe lo in hman theih a ni ang.`,
   presidentName: '',
+  emblemLogoUrl: '/assets/aistudio/images__3__109dbb99.jpg',
 };
 
 export default function App() {
@@ -191,11 +193,11 @@ export default function App() {
   // Distinct Village for Every User
   const currentVillage: VillageConfig = getVillageForUser(currentUser, villages);
 
-  // Authority Approval Gate:
-  // "do not place Issue Land Pass before authority approval for new user"
-  // For new users, Issue Land Pass is NOT placed until Authority grants approval
+  // Authority Approval & Village Profile Configuration Gates:
+  // "do not make it live New Land Pass Issue until Configure Village Profile is done"
   const isApproved = isFullAuthority || currentUser?.status === 'approved';
-  const canIssuePass = isApproved;
+  const isVillageConfigured = isVillageProfileConfigured(currentVillage);
+  const canIssuePass = isApproved && isVillageConfigured;
   const isAdmin = true;
 
   // Realtime Firestore Data Sync
@@ -623,6 +625,13 @@ export default function App() {
     isEdit: boolean,
     existingId?: string
   ) => {
+    if (!isVillageConfigured) {
+      showNotification('Configure Village Profile must be completed before issuing a Land Pass.', 'warn');
+      setIsMandatoryProfileUpdate(true);
+      setIsVillageProfileOpen(true);
+      return;
+    }
+
     const nowIso = new Date().toISOString();
     const id = isEdit && existingId ? existingId : `MZ_${passData.passType.toUpperCase()}_${Date.now()}`;
 
@@ -635,7 +644,7 @@ export default function App() {
       createdAt: isEdit && editingPass ? editingPass.createdAt : nowIso,
       updatedAt: nowIso,
       syncedToCloud: navigator.onLine,
-      approvalStatus: isFullAuthority
+      approvalStatus: (isFullAuthority || (isApproved && isVillageConfigured))
         ? 'live'
         : isEdit && editingPass?.approvalStatus
         ? editingPass.approvalStatus
@@ -923,12 +932,16 @@ export default function App() {
         isAdmin={isAdmin}
         isFullAuthority={isFullAuthority}
         canIssuePass={canIssuePass}
+        isVillageConfigured={isVillageConfigured}
         syncStatus={syncStatus}
         pendingSyncCount={pendingSyncCount}
         currentVillage={currentVillage}
         currentPage={currentPage}
         onNavigatePage={(page) => setCurrentPage(page)}
-        onOpenVillageProfile={() => setCurrentPage('village_council')}
+        onOpenVillageProfile={() => {
+          setIsMandatoryProfileUpdate(!isVillageConfigured);
+          setIsVillageProfileOpen(true);
+        }}
         onOpenUserProfile={() => setCurrentPage('secretary_profile')}
         onOpenRegister={() => {}}
         onOpenAuth={() => {}}
@@ -1135,8 +1148,38 @@ export default function App() {
           </div>
         </div>
 
+        {/* Village Profile Setup Gate Notice */}
+        {isApproved && !isVillageConfigured && (
+          <div className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-amber-950 shadow-xs">
+            <div className="flex items-start gap-3.5">
+              <Building2 className="w-6 h-6 text-amber-700 mt-0.5 shrink-0" />
+              <div className="space-y-1">
+                <h4 className="font-bold text-sm text-amber-950 flex items-center gap-2">
+                  <span>Village Council Profile Configuration Required</span>
+                  <span className="text-[10px] bg-amber-200 text-amber-950 px-2.5 py-0.5 rounded-full font-mono font-bold">
+                    SETUP REQUIRED
+                  </span>
+                </h4>
+                <p className="text-xs text-amber-900 leading-relaxed max-w-2xl">
+                  Your account is approved! However, <strong>New Land Pass Issuance is locked</strong> until you configure your official Village Council profile (Village Name, Block, District, President signatory, and Pass prefixes).
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setIsMandatoryProfileUpdate(true);
+                setIsVillageProfileOpen(true);
+              }}
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition shrink-0"
+            >
+              <Settings className="w-4 h-4" />
+              <span>Configure Village Profile Now</span>
+            </button>
+          </div>
+        )}
+
         {/* Pending Authority Approval Notice for New Users */}
-        {!canIssuePass && (
+        {!isApproved && (
           <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
@@ -1193,7 +1236,7 @@ export default function App() {
               <span>Archive</span>
             </button>
 
-            {/* Issue Pass Button - strictly NOT placed before Authority approval for new user */}
+            {/* Issue Pass Button - strictly NOT live before Authority approval and Village Profile is configured */}
             {canIssuePass ? (
               <button
                 onClick={() => {
@@ -1204,6 +1247,18 @@ export default function App() {
               >
                 <Plus className="w-4 h-4" />
                 <span>+ Issue Pass</span>
+              </button>
+            ) : !isVillageConfigured && isApproved ? (
+              <button
+                onClick={() => {
+                  setIsMandatoryProfileUpdate(true);
+                  setIsVillageProfileOpen(true);
+                }}
+                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition"
+                title="Configure Village Council Profile first to unlock and make Live New Land Pass Issuance"
+              >
+                <Building2 className="w-3.5 h-3.5 text-neutral-950" />
+                <span>Configure Village to Unlock Pass</span>
               </button>
             ) : (
               <div
@@ -1232,6 +1287,8 @@ export default function App() {
                   ? 'Try a different search term (owner name, parent name, location or serial number).'
                   : canIssuePass
                   ? 'Click "+ Issue Pass" above to generate your first official Land Pass certificate.'
+                  : !isVillageConfigured && isApproved
+                  ? 'New Land Pass Issue is locked until Configure Village Profile is done. Please configure your village details above.'
                   : 'Your account is currently awaiting State Authority approval. Land Pass issuance will be placed and activated automatically upon verification.'}
               </p>
             </div>
@@ -1248,10 +1305,28 @@ export default function App() {
               </button>
             )}
             {!canIssuePass && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 font-medium">
-                <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
-                <span>Pass Issuance is disabled until Authority Approval is granted.</span>
-              </div>
+              !isVillageConfigured && isApproved ? (
+                <div className="inline-flex flex-col sm:flex-row items-center gap-3 p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-950 font-medium">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-amber-700" />
+                    <span>New Land Pass Issue is locked until Configure Village Profile is done.</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsMandatoryProfileUpdate(true);
+                      setIsVillageProfileOpen(true);
+                    }}
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition shadow-xs"
+                  >
+                    Configure Village Profile Now
+                  </button>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 font-medium">
+                  <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
+                  <span>Pass Issuance is disabled until Authority Approval is granted.</span>
+                </div>
+              )
             )}
           </div>
         ) : (

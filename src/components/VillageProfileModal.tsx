@@ -175,6 +175,8 @@ export const VillageProfileModal: React.FC<VillageProfileModalProps> = ({
       logoUrl: logoUrl.trim(),
       conditionsAndTerms: conditionsAndTerms.trim(),
       presidentName: presidentName.trim() || 'President',
+      emblemLogoUrl: village.emblemLogoUrl || '/assets/aistudio/images__3__109dbb99.jpg',
+      isConfigured: true,
       updatedAt: new Date().toISOString(),
     };
 

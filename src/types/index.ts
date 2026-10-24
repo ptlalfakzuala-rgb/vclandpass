@@ -17,6 +17,7 @@ export interface VillageConfig {
   conditionsAndTerms: string; // Customizable per village
   presidentName: string;
   secretaryName?: string;
+  isConfigured?: boolean;
   updatedAt?: string;
 }
 

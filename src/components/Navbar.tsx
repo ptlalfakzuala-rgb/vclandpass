@@ -28,6 +28,7 @@ interface NavbarProps {
   isAdmin: boolean;
   isFullAuthority: boolean;
   canIssuePass: boolean;
+  isVillageConfigured?: boolean;
   syncStatus: SyncStatus;
   pendingSyncCount: number;
   currentVillage: VillageConfig;
@@ -54,6 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   isAdmin,
   isFullAuthority,
   canIssuePass,
+  isVillageConfigured = false,
   syncStatus,
   pendingSyncCount,
   currentVillage,
@@ -355,7 +357,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
 
 
-                {/* Authority Gate: Only approved users can issue new pass */}
+                {/* Village Configuration & Authority Gate */}
                 {canIssuePass ? (
                   <button
                     onClick={onOpenAddPass}
@@ -363,6 +365,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   >
                     <Plus className="w-4 h-4" />
                     <span>Issue Land Pass</span>
+                  </button>
+                ) : !isVillageConfigured && (isFullAuthority || currentUser?.status === 'approved') ? (
+                  <button
+                    onClick={onOpenVillageProfile}
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold rounded-xl text-[11px] flex items-center gap-1.5 shadow-sm transition"
+                    title="Configure Village Council Profile first to unlock Land Pass Issuance"
+                  >
+                    <Building2 className="w-3.5 h-3.5 text-neutral-900" />
+                    <span>Configure Village to Unlock Pass</span>
                   </button>
                 ) : (
                   <div className="px-3 py-1 bg-amber-900/40 border border-amber-600/50 rounded-xl text-[11px] text-amber-300 flex items-center gap-1">
