@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    // Default deny for unhandled paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Villages Collection - readable and writable for village councils
+    match /villages/{villageId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Land Passes Collection - public verification read, write for council
+    match /land_passes/{passId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
+    // Audit Logs Collection - append-only trail of all actions
+    match /audit_logs/{logId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
+    // User Profiles - store all users and VC Secretary registrations
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if true;
+    }
+  }
+}

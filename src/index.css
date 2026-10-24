@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@layer utilities {
+  @media print {
+    @page {
+      size: A4 portrait;
+      margin: 8mm;
+    }
+
+    body {
+      background: white !important;
+      color: black !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* Hide web navbar, floating overlays, scrollbars during physical print or PDF save */
+    header,
+    nav,
+    .print\:hidden {
+      display: none !important;
+    }
+
+    .print-a4-page {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-height: auto !important;
+      box-shadow: none !important;
+      border: 3px double #000 !important;
+      margin: 0 !important;
+      padding: 16px !important;
+      page-break-inside: avoid;
+    }
+  }
+}

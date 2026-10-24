@@ -1,0 +1,13 @@
+# Apache configuration for Village Council PHP Storage Backend
+Options -Indexes
+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+</IfModule>
+
+<FilesMatch "\.(sql|json|log)$">
+    Order deny,allow
+    Deny from all
+</FilesMatch>

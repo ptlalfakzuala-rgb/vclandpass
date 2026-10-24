@@ -1,0 +1,8 @@
+{
+  "name": "Saiphai Village Council Land Pass Management",
+  "description": "Official Village Council Land Pass Management system for Saiphai, Mizoram. Issue, verify, print A4 Land Passes (Huan Ram & In Hmun) with QR verification, boundaries, and offline sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

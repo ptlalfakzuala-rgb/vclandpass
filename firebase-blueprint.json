@@ -1,0 +1,299 @@
+{
+  "entities": {
+    "VillageConfig": {
+      "title": "VillageConfig",
+      "description": "Village Council jurisdiction configuration with customized prefixes, logo, conditions, and boundaries in Mizoram.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the village",
+          "maxLength": 64
+        },
+        "villageName": {
+          "type": "string",
+          "description": "Name of the village (e.g., Saiphai, Bilkhawthlir, Vairengte)",
+          "maxLength": 128
+        },
+        "blockName": {
+          "type": "string",
+          "description": "RD Block Name (e.g., Bilkhawthlir RD Block)",
+          "maxLength": 128
+        },
+        "districtName": {
+          "type": "string",
+          "description": "District in Mizoram (e.g., Kolasib, Aizawl, Lunglei, Champhai)",
+          "maxLength": 128
+        },
+        "stateName": {
+          "type": "string",
+          "description": "State name (Mizoram)",
+          "maxLength": 64
+        },
+        "pinCode": {
+          "type": "string",
+          "description": "Postal PIN Code",
+          "maxLength": 16
+        },
+        "huanRamPrefix": {
+          "type": "string",
+          "description": "Pass number serial prefix for Huan Ram (e.g., MZ-05-SPH-HR- or SPH/VC/HR/)",
+          "maxLength": 64
+        },
+        "inHmunPrefix": {
+          "type": "string",
+          "description": "Pass number serial prefix for In Hmun (e.g., MZ-05-SPH-IH- or SPH/VC/IH/)",
+          "maxLength": 64
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "Base64 or image URL of the Village Council official seal/logo",
+          "maxLength": 500000
+        },
+        "conditionsAndTerms": {
+          "type": "string",
+          "description": "Custom Village Council land pass conditions, restrictions, and bylaws",
+          "maxLength": 4096
+        },
+        "presidentName": {
+          "type": "string",
+          "description": "Current Village Council President name",
+          "maxLength": 128
+        },
+        "secretaryName": {
+          "type": "string",
+          "description": "Current Village Council Secretary name",
+          "maxLength": 128
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of profile update",
+          "maxLength": 64
+        }
+      },
+      "required": ["villageName", "blockName", "districtName", "stateName", "pinCode", "huanRamPrefix", "inHmunPrefix"]
+    },
+    "LandPass": {
+      "title": "LandPass",
+      "description": "Official Village Council Land Pass record for Huan Ram or In Hmun in any Mizoram village.",
+      "type": "object",
+      "properties": {
+        "passNumber": {
+          "type": "string",
+          "description": "Unique pass serial number like MZ-05-SPH-HR-1001",
+          "maxLength": 64
+        },
+        "passType": {
+          "type": "string",
+          "description": "Type of land pass: huan_ram or in_hmun",
+          "enum": ["huan_ram", "in_hmun"]
+        },
+        "villageId": {
+          "type": "string",
+          "description": "Village identifier this pass belongs to",
+          "maxLength": 64
+        },
+        "villageName": {
+          "type": "string",
+          "description": "Name of village",
+          "maxLength": 128
+        },
+        "ownerName": {
+          "type": "string",
+          "description": "Full name of the land pass holder",
+          "maxLength": 128
+        },
+        "parentName": {
+          "type": "string",
+          "description": "Father or mother name of the owner",
+          "maxLength": 128
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Contact phone number of the owner",
+          "maxLength": 32
+        },
+        "locationCoordinates": {
+          "type": "string",
+          "description": "GPS coordinates formatted as latitude,longitude",
+          "maxLength": 64
+        },
+        "locationAddress": {
+          "type": "string",
+          "description": "Locality or sub-area in village",
+          "maxLength": 256
+        },
+        "boundaryNorth": {
+          "type": "string",
+          "description": "Northern boundary description",
+          "maxLength": 256
+        },
+        "boundaryEast": {
+          "type": "string",
+          "description": "Eastern boundary description",
+          "maxLength": 256
+        },
+        "boundaryWest": {
+          "type": "string",
+          "description": "Western boundary description",
+          "maxLength": 256
+        },
+        "boundarySouth": {
+          "type": "string",
+          "description": "Southern boundary description",
+          "maxLength": 256
+        },
+        "areaSize": {
+          "type": "string",
+          "description": "Land area in Bighas, Tin hmun, or Sq Ft",
+          "maxLength": 64
+        },
+        "nocDocumentUrl": {
+          "type": "string",
+          "description": "Base64 or URL preview of the NOC document",
+          "maxLength": 500000
+        },
+        "issueDate": {
+          "type": "string",
+          "description": "Date of land pass issuance",
+          "maxLength": 32
+        },
+        "presidentSignatory": {
+          "type": "string",
+          "description": "Authorized signatory name",
+          "maxLength": 128
+        },
+        "qrCodeData": {
+          "type": "string",
+          "description": "Verification token or URL payload for QR code",
+          "maxLength": 1024
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "UID or identifier of officer who entered record",
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of creation",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update",
+          "maxLength": 64
+        }
+      },
+      "required": ["passNumber", "passType", "ownerName", "parentName", "contactNumber", "boundaryNorth", "boundaryEast", "boundaryWest", "boundarySouth"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable log of Village Council administrative actions and pass issuances.",
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "description": "Action performed (e.g., CREATE_PASS, EDIT_PASS, DELETE_PASS, VERIFY_QR)",
+          "maxLength": 64
+        },
+        "targetId": {
+          "type": "string",
+          "description": "Pass ID or entity affected",
+          "maxLength": 128
+        },
+        "targetName": {
+          "type": "string",
+          "description": "Pass number or owner name",
+          "maxLength": 128
+        },
+        "performedBy": {
+          "type": "string",
+          "description": "Name or email of user who performed the action",
+          "maxLength": 128
+        },
+        "details": {
+          "type": "string",
+          "description": "Human-readable description of change",
+          "maxLength": 1024
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "ISO timestamp of the event",
+          "maxLength": 64
+        }
+      },
+      "required": ["action", "targetId", "performedBy", "timestamp"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with role-based access status (Village Council Secretary vs Citizen).",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 128
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name",
+          "maxLength": 128
+        },
+        "userType": {
+          "type": "string",
+          "description": "User category: secretary or citizen",
+          "enum": ["secretary", "citizen"]
+        },
+        "role": {
+          "type": "string",
+          "description": "Assigned permission role: admin or member",
+          "enum": ["admin", "member"]
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "User mobile phone number",
+          "maxLength": 32
+        },
+        "villageId": {
+          "type": "string",
+          "description": "Assigned village jurisdiction ID",
+          "maxLength": 64
+        },
+        "paymentStatus": {
+          "type": "string",
+          "description": "Payment verification status for Secretary registration",
+          "maxLength": 32
+        },
+        "paymentRef": {
+          "type": "string",
+          "description": "UPI / GPay transaction reference number",
+          "maxLength": 128
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["role"]
+    }
+  },
+  "firestore": {
+    "/villages/{villageId}": {
+      "schema": "VillageConfig",
+      "description": "Configurations, custom prefixes, terms, and logos for all Mizoram villages."
+    },
+    "/land_passes/{passId}": {
+      "schema": "LandPass",
+      "description": "Collection of all Mizoram Village Council Huan Ram and In Hmun land passes."
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Village Council audit log entries."
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User account profiles and roles."
+    }
+  }
+}

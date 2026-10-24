@@ -1,0 +1,19 @@
+# Apache Configuration for Village Council PHP Application
+Options -Indexes
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+<FilesMatch "\.(sql|log|sh)$">
+    Order deny,allow
+    Deny from all
+</FilesMatch>
+
+# Allow access to web pages and static assets
+<FilesMatch "\.(php|css|js|png|jpg|jpeg|gif|ico|svg|pdf)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
