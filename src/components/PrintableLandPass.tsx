@@ -467,9 +467,6 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
 
                 {/* Main Heading Text - Fits in a single line on standard A4 print/save */}
                 <div className="text-center flex-1 min-w-0 px-2 space-y-1">
-                  <div className="inline-block bg-neutral-900 text-white text-[11px] sm:text-xs font-mono tracking-widest px-3 py-0.5 rounded-full uppercase font-bold mb-0.5">
-                    Government of Mizoram
-                  </div>
                   <h1 className="text-lg sm:text-xl md:text-2xl font-black tracking-wide sm:tracking-wider text-neutral-950 uppercase leading-tight whitespace-nowrap overflow-hidden text-ellipsis print:text-[20px] print:tracking-normal print:leading-snug print:whitespace-nowrap">
                     OFFICE OF THE VILLAGE COUNCIL
                   </h1>
@@ -489,7 +486,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
                 >
                   <img
                     src={emblemLogoUrl || DEFAULT_LAD_EMBLEM_URL}
-                    alt="Local Administration Department, Government of Mizoram Official Emblem"
+                    alt="Local Administration Department Official Emblem"
                     className="w-full h-full object-contain"
                   />
                   <div className="absolute inset-0 bg-black/40 text-white text-[10px] font-bold rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition print:hidden">
@@ -736,7 +733,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
 
             {/* Bottom Security Footer */}
             <div className="mt-3 pt-1.5 border-t border-neutral-200 text-center text-[10px] sm:text-xs text-neutral-500 font-mono">
-              Government of Mizoram &bull; Village Council Land Registry System &bull; Pass Serial: {pass.passNumber} &bull; Page 1 of 2
+              Village Council Land Registry System &bull; Pass Serial: {pass.passNumber} &bull; Page 1 of 2
             </div>
           </div>
         </div>
