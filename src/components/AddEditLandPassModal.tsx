@@ -64,7 +64,7 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
       setOwnerName(editingPass.ownerName);
       setParentName(editingPass.parentName);
       setContactNumber(editingPass.contactNumber);
-      setLocationCoordinates(editingPass.locationCoordinates || '24.2415, 92.9350');
+      setLocationCoordinates(editingPass.locationCoordinates || '');
       setLocationAddress(editingPass.locationAddress || '');
       setBoundaryNorth(editingPass.boundaryNorth);
       setBoundaryEast(editingPass.boundaryEast);
@@ -243,7 +243,7 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
                   <div>
                     <span className="font-bold text-emerald-950 block">Huan Ram Pass</span>
                     <span className="text-xs text-neutral-600 block mt-0.5">
-                      Agricultural / Plantation land. Serial starts: SPH/VC/HR/1001
+                      Agricultural / Plantation land. Prefix: {village.huanRamPrefix || 'VC/HR'}
                     </span>
                   </div>
                 </button>
@@ -265,7 +265,7 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
                   <div>
                     <span className="font-bold text-blue-950 block">In Hmun Pass</span>
                     <span className="text-xs text-neutral-600 block mt-0.5">
-                      Residential plot / House site. Serial starts: SPH/VC/IH/1001
+                      Residential plot / House site. Prefix: {village.inHmunPrefix || 'VC/IH'}
                     </span>
                   </div>
                 </button>
@@ -374,7 +374,7 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
                   </label>
                   <input
                     type="text"
-                    placeholder="24.2415, 92.9350"
+                    placeholder="e.g. 23.7271, 92.7176"
                     value={locationCoordinates}
                     onChange={(e) => setLocationCoordinates(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-mono"
@@ -387,7 +387,7 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Vaphai Road Huan, Saiphai"
+                    placeholder={`e.g. Vengpui / Ramthar Area, ${village.villageName || 'Mizoram'}`}
                     value={locationAddress}
                     onChange={(e) => setLocationAddress(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-neutral-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
@@ -616,11 +616,13 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
         </div>
       </div>
 
-      {/* Map Coordinate Picker Modal */}
+      {/* Google Maps Coordinate Picker Modal */}
       <MapPickerModal
         isOpen={isMapModalOpen}
         onClose={() => setIsMapModalOpen(false)}
         initialCoordinates={locationCoordinates}
+        villageName={village.villageName}
+        districtName={village.districtName}
         onSelectCoordinates={(coords, hint) => {
           setLocationCoordinates(coords);
           if (hint && !locationAddress) {
