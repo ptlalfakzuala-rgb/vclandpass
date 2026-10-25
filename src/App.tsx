@@ -40,6 +40,7 @@ import {
   setCachedUsers,
   approveLandPassLive,
   cleanForFirestore,
+  deleteUser,
 } from './services/userService';
 import { logActivity } from './services/auditLogger';
 import {
@@ -69,6 +70,7 @@ import { VerifyPassModal } from './components/VerifyPassModal';
 import { FullAuthorityModal } from './components/FullAuthorityModal';
 import { AuthorityKeyModal } from './components/AuthorityKeyModal';
 import { DeletePassModal } from './components/DeletePassModal';
+import { AboutAppModal } from './components/AboutAppModal';
 
 import {
   Search,
@@ -177,6 +179,7 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isAuditLogOpen, setIsAuditLogOpen] = useState<boolean>(false);
   const [isVerifyOpen, setIsVerifyOpen] = useState<boolean>(false);
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState<boolean>(false);
 
   // Users list
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
@@ -566,6 +569,40 @@ export default function App() {
     }
   };
 
+  // Permanently delete user account with warning dialogue execution
+  const handleDeleteUser = async (userToDelete: UserProfile) => {
+    try {
+      // 1. Optimistic update
+      setUsersList((prev) => prev.filter((u) => u.uid !== userToDelete.uid));
+
+      // 2. Perform database and cache deletion
+      await deleteUser(userToDelete.uid);
+
+      // 3. If currently logged in user is the deleted user, log them out
+      if (currentUser?.uid === userToDelete.uid) {
+        setCurrentUser(null);
+        localStorage.removeItem('mizoram_vc_current_user');
+      }
+
+      // 4. Log activity
+      await logActivity(
+        'USER_DELETED',
+        userToDelete.uid,
+        userToDelete.displayName || userToDelete.username || 'User',
+        'Full Authority',
+        `Permanently deleted user account (${userToDelete.displayName || userToDelete.username || userToDelete.uid}) from Village Council system`
+      );
+
+      showNotification(
+        `User account ${userToDelete.displayName || userToDelete.username || 'Secretary'} permanently deleted.`,
+        'info'
+      );
+    } catch (err: any) {
+      console.error('Error deleting user:', err);
+      showNotification(`Error deleting user: ${err?.message || err}`, 'warn');
+    }
+  };
+
   // Full Authority Land Pass Live Approval
   const handleApprovePass = async (passId: string) => {
     try {
@@ -917,6 +954,7 @@ export default function App() {
           onApproveUser={handleApproveUser}
           onRejectUser={handleRejectUser}
           onApprovePass={handleApprovePass}
+          onDeleteUser={handleDeleteUser}
           onExitAuthorityMode={handleExitAuthorityMode}
         />
       </>
@@ -958,6 +996,7 @@ export default function App() {
         onManualSync={handleManualSync}
         onOpenFullAuthority={() => setIsFullAuthorityModalOpen(true)}
         onOpenAuthorityKeyModal={() => setIsAuthorityKeyModalOpen(true)}
+        onOpenAbout={() => setIsAboutModalOpen(true)}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
       />
@@ -1364,8 +1403,14 @@ export default function App() {
               Official Electronic Land Pass System &bull; Live Realtime Database Synced
             </span>
           </div>
-          <div className="text-[11px] text-neutral-400">
-            Authority Support: <strong>ptlalfakzuala@gmail.com</strong> &bull; WhatsApp: <strong>7005504074</strong>
+          <div className="text-[11px] text-neutral-400 flex items-center gap-4 flex-wrap">
+            <button
+              onClick={() => setIsAboutModalOpen(true)}
+              className="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 cursor-pointer transition underline"
+            >
+              <span>App Chungchang (Mizo)</span>
+            </button>
+            <span>Authority Support: <strong>ptlalfakzuala@gmail.com</strong> &bull; WhatsApp: <strong>7005504074</strong></span>
           </div>
         </div>
       </footer>
@@ -1463,6 +1508,7 @@ export default function App() {
         onApproveUser={handleApproveUser}
         onRejectUser={handleRejectUser}
         onApprovePass={handleApprovePass}
+        onDeleteUser={handleDeleteUser}
         onExitAuthorityMode={handleExitAuthorityMode}
         onTransferToRTDB={handleTransferToRTDB}
       />
@@ -1480,6 +1526,12 @@ export default function App() {
         pass={passToDeleteForWarning}
         onClose={() => setPassToDeleteForWarning(null)}
         onConfirmDelete={handleConfirmDeletePass}
+      />
+
+      {/* 12. App Chungchang (Mizo Guide) Modal */}
+      <AboutAppModal
+        isOpen={isAboutModalOpen}
+        onClose={() => setIsAboutModalOpen(false)}
       />
     </div>
   );

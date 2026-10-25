@@ -19,8 +19,12 @@ import {
   FileText,
   MapPin,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  KeyRound,
+  Copy,
+  Trash2
 } from 'lucide-react';
+import { DeleteUserModal } from './DeleteUserModal';
 
 interface FullAuthorityModalProps {
   isOpen: boolean;
@@ -30,6 +34,7 @@ interface FullAuthorityModalProps {
   onApproveUser: (uid: string) => Promise<void> | void;
   onRejectUser: (uid: string, reason?: string) => Promise<void> | void;
   onApprovePass?: (passId: string) => Promise<void> | void;
+  onDeleteUser?: (user: UserProfile) => Promise<void> | void;
   onExitAuthorityMode?: () => void;
   onTransferToRTDB?: () => Promise<void> | void;
 }
@@ -42,6 +47,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
   onApproveUser,
   onRejectUser,
   onApprovePass,
+  onDeleteUser,
   onExitAuthorityMode,
   onTransferToRTDB,
 }) => {
@@ -51,12 +57,36 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
   const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; title: string } | null>(null);
   const [rejectingUser, setRejectingUser] = useState<UserProfile | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [userToDeleteForWarning, setUserToDeleteForWarning] = useState<UserProfile | null>(null);
+  const [copiedUid, setCopiedUid] = useState<string | null>(null);
 
   // Local optimistic state for instant UI reaction
   const [localUsers, setLocalUsers] = useState<UserProfile[]>(users);
   const [localPasses, setLocalPasses] = useState<LandPass[]>(passes);
   const [processingUid, setProcessingUid] = useState<string | null>(null);
   const [processingPassId, setProcessingPassId] = useState<string | null>(null);
+
+  const handleCopyKey = (uid: string, key: string) => {
+    if (!key) return;
+    navigator.clipboard.writeText(key);
+    setCopiedUid(uid);
+    setTimeout(() => setCopiedUid(null), 2500);
+  };
+
+  const handleConfirmDeleteUser = async (user: UserProfile) => {
+    setProcessingUid(user.uid);
+    try {
+      if (onDeleteUser) {
+        await onDeleteUser(user);
+      }
+      setLocalUsers((prev) => prev.filter((u) => u.uid !== user.uid));
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+    } finally {
+      setProcessingUid(null);
+      setUserToDeleteForWarning(null);
+    }
+  };
 
   useEffect(() => {
     setLocalUsers(users);
@@ -451,6 +481,43 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                               </div>
                             </div>
 
+                            {/* Every User Secret Key & Credentials Display */}
+                            <div className="pt-1 flex items-center gap-2 flex-wrap">
+                              <div className="inline-flex items-center gap-2 bg-amber-50 hover:bg-amber-100/70 px-3 py-1.5 rounded-xl border border-amber-300 shadow-2xs transition">
+                                <KeyRound className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                                <span className="text-[11px] font-bold text-amber-950 uppercase tracking-wide">
+                                  Secret Key:
+                                </span>
+                                <span className="font-mono font-black text-xs text-neutral-950 bg-white px-2.5 py-0.5 rounded-md border border-amber-300 shadow-2xs select-all">
+                                  {user.password || user.passkey || 'N/A'}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyKey(user.uid, user.password || user.passkey || '')}
+                                  className="text-amber-800 hover:text-amber-950 hover:bg-amber-200/80 p-1 rounded-md transition flex items-center gap-1 text-[11px] font-bold cursor-pointer"
+                                  title="Copy Secret Key to clipboard"
+                                >
+                                  {copiedUid === user.uid ? (
+                                    <>
+                                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                      <span className="text-emerald-700 text-[10px]">Copied!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-3.5 h-3.5" />
+                                      <span className="text-[10px]">Copy</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+
+                              {user.username && (
+                                <div className="text-[11px] text-neutral-500 font-medium bg-neutral-100 px-2 py-1 rounded-lg border border-neutral-200">
+                                  Username: <strong className="font-mono text-neutral-900">{user.username}</strong>
+                                </div>
+                              )}
+                            </div>
+
                             {user.rejectionReason && (
                               <div className="text-xs bg-rose-100 text-rose-900 p-2 rounded-lg border border-rose-200">
                                 <strong>Rejection Reason:</strong> {user.rejectionReason}
@@ -491,7 +558,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                             </div>
                           )}
 
-                          {/* Right: Actions (Approve / Reject) */}
+                          {/* Right: Actions (Approve / Reject / Delete) */}
                           <div className="flex flex-row md:flex-col items-center justify-end gap-2 shrink-0">
                             {isPending && (
                               <>
@@ -539,6 +606,18 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                                 Reconsider / Approve
                               </button>
                             )}
+
+                            {/* Permanent Delete User with Warning Dialogue */}
+                            <button
+                              type="button"
+                              disabled={isProcessing}
+                              onClick={() => setUserToDeleteForWarning(user)}
+                              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 rounded-xl text-xs font-semibold transition border border-rose-200 hover:border-rose-300 flex items-center gap-1.5 shadow-2xs disabled:opacity-50 cursor-pointer"
+                              title="Permanently delete this user account"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                              <span>Delete User</span>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -718,6 +797,14 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
           </form>
         </div>
       )}
+
+      {/* Delete User Warning Dialogue Modal */}
+      <DeleteUserModal
+        isOpen={!!userToDeleteForWarning}
+        user={userToDeleteForWarning}
+        onClose={() => setUserToDeleteForWarning(null)}
+        onConfirmDelete={handleConfirmDeleteUser}
+      />
     </>
   );
 };

@@ -1,8 +1,8 @@
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { UserProfile, UserStatus } from '../types';
 import { encryptData, decryptData } from './encryption';
-import { saveUserToRTDB } from './realtimeSync';
+import { saveUserToRTDB, deleteUserFromRTDB } from './realtimeSync';
 
 const ENCRYPTED_USERS_KEY = 'mizoram_vc_encrypted_users_cache';
 export const FULL_AUTHORITY_KEY_VALUE = '785392';
@@ -292,3 +292,44 @@ export async function approveLandPassLive(
     return false;
   }
 }
+
+// Delete user permanently from local cache, Firestore, and Realtime Database
+export async function deleteUser(uid: string): Promise<boolean> {
+  try {
+    // 1. Update cache
+    const current = await getCachedUsers();
+    const updated = current.filter((u) => u.uid !== uid);
+    await setCachedUsers(updated);
+
+    // 2. Delete from Firestore & Realtime Database
+    if (navigator.onLine) {
+      try {
+        await deleteDoc(doc(db, 'users', uid));
+      } catch (e) {
+        console.warn('Failed to delete user doc in Firestore:', e);
+      }
+      try {
+        await deleteUserFromRTDB(uid);
+      } catch (e) {
+        console.warn('Failed to delete user from RTDB:', e);
+      }
+    }
+
+    // 3. Clear from localStorage if this is currently stored user
+    try {
+      const stored = localStorage.getItem('mizoram_vc_current_user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.uid === uid) {
+          localStorage.removeItem('mizoram_vc_current_user');
+        }
+      }
+    } catch {}
+
+    return true;
+  } catch (e) {
+    console.error('Failed to delete user:', e);
+    return false;
+  }
+}
+

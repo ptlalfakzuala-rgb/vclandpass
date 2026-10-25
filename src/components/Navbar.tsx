@@ -20,7 +20,8 @@ import {
   KeyRound,
   Clock,
   Camera,
-  FileText
+  FileText,
+  BookOpen
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -46,6 +47,7 @@ interface NavbarProps {
   onManualSync: () => void;
   onOpenFullAuthority: () => void;
   onOpenAuthorityKeyModal: () => void;
+  onOpenAbout?: () => void;
   activeFilter: 'all' | 'huan_ram' | 'in_hmun';
   onFilterChange: (f: 'all' | 'huan_ram' | 'in_hmun') => void;
 }
@@ -73,6 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onManualSync,
   onOpenFullAuthority,
   onOpenAuthorityKeyModal,
+  onOpenAbout,
   activeFilter,
   onFilterChange,
 }) => {
@@ -206,6 +209,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Sliders className="w-4 h-4" />
             </button>
+
+            {/* App Chungchang (Mizo Guide) Button */}
+            {onOpenAbout && (
+              <button
+                onClick={onOpenAbout}
+                className="px-2.5 py-1.5 bg-emerald-900/90 hover:bg-emerald-800 text-emerald-200 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-emerald-800 shadow-2xs"
+                title="App Chungchang (Mizo Tawngin Hrilhfiahna)"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden md:inline">App Chungchang</span>
+              </button>
+            )}
 
             {/* User Profile Bar */}
             {currentUser ? (

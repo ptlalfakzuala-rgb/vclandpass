@@ -70,7 +70,8 @@ export interface AuditLog {
     | 'USER_REGISTRATION_REJECTED'
     | 'USER_PROFILE_UPDATED'
     | 'PASS_APPROVED_LIVE'
-    | 'AUTHORITY_ELEVATION';
+    | 'AUTHORITY_ELEVATION'
+    | 'USER_DELETED';
   targetId: string;
   targetName: string;
   performedBy: string;

@@ -28,7 +28,11 @@ import {
   FileText,
   ShieldCheck,
   Building2,
-  Clock
+  Clock,
+  BookOpen,
+  Layers,
+  Printer,
+  Sparkles
 } from 'lucide-react';
 import { authenticateSecretary, saveOrUpdateUser } from '../services/userService';
 import { logActivity } from '../services/auditLogger';
@@ -47,7 +51,7 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
   allPasses,
   onViewPass,
 }) => {
-  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'authority' | 'verify'>('login');
+  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'authority' | 'verify' | 'about'>('login');
 
   // Login form state (Only Username & Secret Key)
   const [loginUsername, setLoginUsername] = useState<string>('');
@@ -528,6 +532,18 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
           >
             <QrCode className="w-3.5 h-3.5" />
             <span>QR Scanner</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('about')}
+            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+              activeTab === 'about'
+                ? 'bg-emerald-700 text-white shadow-md'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 text-amber-300" />
+            <span>App Chungchang (Mizo)</span>
           </button>
         </div>
 
@@ -1189,6 +1205,82 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* TAB 4: APP CHUNGCHANG (ABOUT SYSTEM IN MIZO)                  */}
+        {/* ============================================================== */}
+        {activeTab === 'about' && (
+          <div className="bg-neutral-800/95 rounded-3xl border border-neutral-700/80 p-6 sm:p-10 shadow-2xl max-w-3xl mx-auto w-full backdrop-blur-md text-white space-y-6">
+            <div className="text-center space-y-1 pb-4 border-b border-neutral-700">
+              <div className="w-12 h-12 bg-emerald-950 border border-emerald-600/40 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 mb-3 shadow-inner">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-serif font-black text-white">
+                Mizoram Village Council Land Pass System Chungchang
+              </h2>
+              <p className="text-xs text-neutral-400">
+                Chipchiar taka hrilhfiahna &bull; Mizo Tawngin
+              </p>
+            </div>
+
+            <div className="space-y-4 text-xs sm:text-sm text-neutral-300 leading-relaxed">
+              <div className="p-4 bg-emerald-950/60 border border-emerald-800 rounded-2xl space-y-2">
+                <h3 className="font-bold text-emerald-200 text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>A Tlangpui Thlirna (Overview)</span>
+                </h3>
+                <p>
+                  He application hi <strong>Mizoram Village Council (V/C)</strong> te tana bika siam, <strong>Huan Ram leh In Hmun Land Pass</strong> felfai, rintlak leh changkang taka enkawl, chhuah, leh chhinchhiahna (Electronic Land Registry System) a ni. Hmanlai lehkha bu thil hlui, chhia leh boral thei laka fihlimin, khawtlang rorelna leh ram pek chungchang rintlak leh zahawm taka digital hmanga vawn thatna hmanrua a ni.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div className="p-3.5 bg-neutral-900/80 rounded-xl border border-neutral-700 space-y-1">
+                  <span className="font-bold text-emerald-300 text-xs sm:text-sm block">1. Huan Ram &amp; In Hmun Pass</span>
+                  <p className="text-xs text-neutral-400">
+                    Huan ram leh In hmun pass duhtawka thlan theih a ni a, pass number hi computer-in indawt thlapin (auto-sequential) a pe zel.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-neutral-900/80 rounded-xl border border-neutral-700 space-y-1">
+                  <span className="font-bold text-emerald-300 text-xs sm:text-sm block">2. Google Maps &amp; Move Tool</span>
+                  <p className="text-xs text-neutral-400">
+                    Satellite, Terrain leh Roadmap hmangin ramri kil zawn tak zawnah Move Tool (D-pad &amp; Drag) hmangin GPS coordinates a la thei.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-neutral-900/80 rounded-xl border border-neutral-700 space-y-1">
+                  <span className="font-bold text-emerald-300 text-xs sm:text-sm block">3. Official A4 Certificate Print</span>
+                  <p className="text-xs text-neutral-400">
+                    Website thil dang lang lovin, Council Logo, State Emblem, QR Code, 2x2 Boundary Grid, leh President Seal space nen A4-ah a print/save theih.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-neutral-900/80 rounded-xl border border-neutral-700 space-y-1">
+                  <span className="font-bold text-emerald-300 text-xs sm:text-sm block">4. QR Code &amp; Cloud Sync</span>
+                  <p className="text-xs text-neutral-400">
+                    Smartphone-in QR Code scan-in a finfiah theih a. Offline-first leh Realtime Firebase Cloud database-ah kumhlunin a him reng.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-neutral-900 rounded-2xl border border-neutral-700 space-y-2">
+                <span className="font-bold text-white text-xs uppercase tracking-wider block">
+                  Mizoram Khawtlang Tana A Hlawkna
+                </span>
+                <ul className="space-y-1 text-xs text-neutral-300 list-disc list-inside">
+                  <li>Village Council term a inthlak pawhin khaw ram pass record a bo ngai tawh lo.</li>
+                  <li>GPS Coordinates leh Ramri Grid felfai tak avangin ramri innek buaina a veng.</li>
+                  <li>Khawtual mipuite tan bank leh sawrkar hmaa zahawm taka phawrh ngam pass a ni.</li>
+                </ul>
+              </div>
+
+              <div className="pt-2 text-center text-xs text-neutral-400">
+                Direct Authority Support: <strong>ptlalfakzuala@gmail.com</strong> &bull; WhatsApp: <strong>7005504074</strong>
+              </div>
+            </div>
           </div>
         )}
       </main>
