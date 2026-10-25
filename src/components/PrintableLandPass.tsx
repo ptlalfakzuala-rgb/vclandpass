@@ -505,225 +505,237 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
               </div>
             </div>
 
-            {/* Sub-Header: Certificate Title & Sequential Pass Number Badge */}
-            <div className="bg-neutral-100/90 border border-neutral-300 rounded-xl p-3 mb-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-              <div className="text-center sm:text-left">
-                <span className="text-xs font-mono uppercase text-neutral-600 tracking-wider block font-semibold">
-                  Document Title &bull; Land Pass Record
-                </span>
-                <span className="text-base sm:text-lg font-black text-neutral-950 uppercase tracking-wide">
-                  {pass.passType === 'huan_ram'
-                    ? 'HUAN RAM NEIHNA LEHKHA (GARDEN/AGRI LAND PASS)'
-                    : 'IN HMUN NEIHNA LEHKHA (RESIDENTIAL/HOUSE SITE PASS)'}
-                </span>
-              </div>
-
-              <div className="text-center sm:text-right">
-                <span className="text-xs font-mono text-neutral-600 block font-semibold">
-                  Sequential Pass No.
-                </span>
-                <span className="text-sm sm:text-base font-mono font-black text-emerald-950 bg-white border border-neutral-300 px-3 py-1 rounded-lg inline-block shadow-2xs">
-                  {pass.passNumber}
-                </span>
-              </div>
-            </div>
-
-            {/* Document Details Grid - Consistent & Legible Typography */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 text-xs sm:text-sm mb-4">
-              {/* Left Column: Owner & Property Details */}
-              <div className="md:col-span-7 space-y-2">
-                <div className="bg-neutral-50/90 p-4 rounded-xl border border-neutral-200 space-y-2.5">
-                  <div className="text-xs font-bold uppercase tracking-wider text-neutral-800 border-b border-neutral-200 pb-1.5">
-                    Pass Holder &amp; Land Specifics
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 py-1">
-                    <span className="text-neutral-600 font-semibold text-xs sm:text-sm">
-                      Neitu Hming (Owner):
-                    </span>
-                    <span className="col-span-2 font-black text-neutral-950 text-sm sm:text-base">
-                      {pass.ownerName}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 py-1 border-t border-neutral-200/80">
-                    <span className="text-neutral-600 font-semibold text-xs sm:text-sm">
-                      Nu/Pa Hming (Parent):
-                    </span>
-                    <span className="col-span-2 font-bold text-neutral-900 text-xs sm:text-sm">
-                      {pass.parentName || 'N/A'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 py-1 border-t border-neutral-200/80">
-                    <span className="text-neutral-600 font-semibold text-xs sm:text-sm">
-                      Contact Number:
-                    </span>
-                    <span className="col-span-2 font-mono font-bold text-neutral-900 text-xs sm:text-sm">
-                      {pass.contactNumber || 'N/A'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 py-1 border-t border-neutral-200/80">
-                    <span className="text-neutral-600 font-semibold text-xs sm:text-sm">
-                      Pass Type:
-                    </span>
-                    <span className="col-span-2 font-bold text-emerald-950 uppercase text-xs sm:text-sm">
-                      {pass.passType === 'huan_ram' ? 'Huan Ram (Garden/Agriculture)' : 'In Hmun (Residential Site)'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 py-1 border-t border-neutral-200/80">
-                    <span className="text-neutral-600 font-semibold text-xs sm:text-sm">
-                      Location / Locality:
-                    </span>
-                    <span className="col-span-2 font-semibold text-neutral-900 text-xs sm:text-sm">
-                      {pass.locationAddress || `${village.villageName || 'Mizoram'} Area`}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 py-1 border-t border-neutral-200/80">
-                    <span className="text-neutral-600 font-semibold text-xs sm:text-sm">
-                      Area Extent:
-                    </span>
-                    <span className="col-span-2 font-black text-neutral-950 text-xs sm:text-sm">
-                      {pass.areaSize || 'As specified in boundaries'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 py-1 border-t border-neutral-200/80">
-                    <span className="text-neutral-600 font-semibold text-xs sm:text-sm">
-                      GPS Coordinates:
-                    </span>
-                    <span className="col-span-2 font-mono text-xs sm:text-sm text-emerald-900 font-bold flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-emerald-700 inline shrink-0" />
-                      <span>{pass.locationCoordinates}</span>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 py-1 border-t border-neutral-200/80">
-                    <span className="text-neutral-600 font-semibold text-xs sm:text-sm">
-                      Issue Date:
-                    </span>
-                    <span className="col-span-2 font-mono font-bold text-neutral-900 text-xs sm:text-sm">
-                      {pass.issueDate}
-                    </span>
-                  </div>
+            {/* Sub-Header: Certificate Title, Issue Date & Sequential Pass Number Badge with QR Code underneath */}
+            <div className="bg-neutral-100/90 border border-neutral-300 rounded-xl p-3 sm:p-3.5 mb-3.5 print:p-2.5 print:mb-2.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="text-center sm:text-left space-y-1.5 flex-1">
+                <div>
+                  <span className="text-[11px] font-mono uppercase text-neutral-600 tracking-wider block font-semibold">
+                    Document Title &bull; Land Pass Record
+                  </span>
+                  <span className="text-base sm:text-lg print:text-base font-black text-neutral-950 uppercase tracking-wide block">
+                    {pass.passType === 'huan_ram'
+                      ? 'HUAN RAM NEIHNA LEHKHA (GARDEN/AGRI LAND PASS)'
+                      : 'IN HMUN NEIHNA LEHKHA (RESIDENTIAL/HOUSE SITE PASS)'}
+                  </span>
                 </div>
 
-                {/* NOC Document verification badge */}
-                {pass.nocDocumentUrl && (
-                  <div className="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200 flex items-center justify-between text-xs sm:text-sm">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-amber-800" />
-                      <div>
-                        <span className="font-bold text-amber-950">
-                          NOC Certificate Attached:
-                        </span>{' '}
-                        <span className="text-amber-900 font-medium">
-                          {pass.nocDocumentName || 'Council NOC verified'}
-                        </span>
-                      </div>
+                {/* Prominent Issue Date Display */}
+                <div className="flex items-center justify-center sm:justify-start gap-2 pt-0.5">
+                  <span className="bg-emerald-900 text-white font-mono text-[11px] print:text-[10px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-2xs">
+                    Issue Date: {pass.issueDate}
+                  </span>
+                  <span className="text-xs print:text-[11px] text-neutral-600 font-semibold">
+                    (Pek Chhuah Ni)
+                  </span>
+                </div>
+              </div>
+
+              {/* Pass Number Block with QR Code Placed Directly Underneath */}
+              <div className="flex flex-col items-center sm:items-end text-center sm:text-right shrink-0">
+                <span className="text-[10px] sm:text-[11px] font-mono text-neutral-600 font-bold uppercase tracking-wider block">
+                  Sequential Pass No.
+                </span>
+                <span className="text-sm sm:text-base font-mono font-black text-emerald-950 bg-white border-2 border-neutral-800 px-3 py-0.5 rounded-lg inline-block shadow-2xs">
+                  {pass.passNumber}
+                </span>
+
+                {/* QR Code placed directly UNDER land pass number */}
+                {qrDataUrl && (
+                  <div className="mt-1 flex flex-col items-center sm:items-end">
+                    <div className="bg-white p-1 rounded-lg border border-neutral-300 shadow-2xs">
+                      <img
+                        src={qrDataUrl}
+                        alt="Land Pass Verification QR Code"
+                        className="w-[72px] h-[72px] print:w-[64px] print:h-[64px] object-contain"
+                      />
                     </div>
-                    <span className="bg-amber-200 text-amber-950 font-bold px-2.5 py-0.5 rounded-full text-xs">
-                      Verified
+                    <span className="text-[8px] font-mono text-neutral-500 font-semibold mt-0.5">
+                      Scan to verify authenticity
                     </span>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Right Column: Boundaries & QR Verification */}
-              <div className="md:col-span-5 flex flex-col justify-between space-y-3">
-                {/* Boundaries Box */}
-                <div className="bg-neutral-50/90 p-4 rounded-xl border border-neutral-200 space-y-2">
-                  <div className="text-xs font-bold uppercase tracking-wider text-neutral-800 border-b border-neutral-200 pb-1.5 flex items-center justify-between">
-                    <span>Ramri / Boundaries</span>
-                    <span className="text-xs text-neutral-500 font-medium">Four Cardinal Sides</span>
-                  </div>
+            {/* Pass Holder & Land Specifics Details */}
+            <div className="bg-neutral-50/90 p-3.5 sm:p-4 print:p-2.5 rounded-xl border border-neutral-200 mb-3 print:mb-2 space-y-2">
+              <div className="text-xs font-bold uppercase tracking-wider text-neutral-800 border-b border-neutral-200 pb-1 flex items-center justify-between">
+                <span>Pass Holder &amp; Land Specifics</span>
+                <span className="text-[11px] font-mono text-neutral-600 font-bold">
+                  Issue Date: {pass.issueDate}
+                </span>
+              </div>
 
-                  <div className="space-y-1.5 text-xs sm:text-sm">
-                    <div className="p-2 bg-white rounded-lg border border-neutral-200">
-                      <span className="font-bold text-neutral-900">Hmar (North): </span>
-                      <span className="text-neutral-800 font-medium">{pass.boundaryNorth}</span>
-                    </div>
-                    <div className="p-2 bg-white rounded-lg border border-neutral-200">
-                      <span className="font-bold text-neutral-900">Chhak (East): </span>
-                      <span className="text-neutral-800 font-medium">{pass.boundaryEast}</span>
-                    </div>
-                    <div className="p-2 bg-white rounded-lg border border-neutral-200">
-                      <span className="font-bold text-neutral-900">Thlang (West): </span>
-                      <span className="text-neutral-800 font-medium">{pass.boundaryWest}</span>
-                    </div>
-                    <div className="p-2 bg-white rounded-lg border border-neutral-200">
-                      <span className="font-bold text-neutral-900">Chhim (South): </span>
-                      <span className="text-neutral-800 font-medium">{pass.boundarySouth}</span>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5 text-xs sm:text-sm print:text-xs">
+                <div className="flex items-center justify-between py-0.5 border-b border-neutral-200/60">
+                  <span className="text-neutral-600 font-semibold">Neitu Hming (Owner):</span>
+                  <span className="font-black text-neutral-950 text-sm sm:text-base print:text-sm">
+                    {pass.ownerName}
+                  </span>
                 </div>
 
-                {/* QR Verification Seal Box */}
-                <div className="bg-white p-3 rounded-xl border-2 border-dashed border-neutral-300 flex items-center justify-between gap-3 shadow-2xs">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 text-emerald-900 font-bold text-xs sm:text-sm">
-                      <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                      <span>QR Verification</span>
+                <div className="flex items-center justify-between py-0.5 border-b border-neutral-200/60">
+                  <span className="text-neutral-600 font-semibold">Nu/Pa Hming (Parent):</span>
+                  <span className="font-bold text-neutral-900">{pass.parentName || 'N/A'}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-0.5 border-b border-neutral-200/60">
+                  <span className="text-neutral-600 font-semibold">Contact Number:</span>
+                  <span className="font-mono font-bold text-neutral-900">{pass.contactNumber || 'N/A'}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-0.5 border-b border-neutral-200/60">
+                  <span className="text-neutral-600 font-semibold">Pass Type:</span>
+                  <span className="font-bold text-emerald-950 uppercase">
+                    {pass.passType === 'huan_ram' ? 'Huan Ram (Garden/Agriculture)' : 'In Hmun (Residential Site)'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-0.5 border-b border-neutral-200/60">
+                  <span className="text-neutral-600 font-semibold">Location / Locality:</span>
+                  <span className="font-semibold text-neutral-900">{pass.locationAddress || `${village.villageName || 'Mizoram'} Area`}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-0.5 border-b border-neutral-200/60">
+                  <span className="text-neutral-600 font-semibold">Area Extent:</span>
+                  <span className="font-black text-neutral-950">{pass.areaSize || 'As specified in boundaries'}</span>
+                </div>
+
+                <div className="flex items-center justify-between py-0.5 border-b border-neutral-200/60">
+                  <span className="text-neutral-600 font-semibold">GPS Coordinates:</span>
+                  <span className="font-mono text-emerald-900 font-bold flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-700 inline shrink-0" />
+                    <span>{pass.locationCoordinates}</span>
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-0.5 border-b border-neutral-200/60">
+                  <span className="text-neutral-600 font-semibold">Pek Chhuah Ni (Issue Date):</span>
+                  <span className="font-mono font-bold text-neutral-950 bg-neutral-200/70 px-2 py-0.5 rounded text-xs">
+                    {pass.issueDate}
+                  </span>
+                </div>
+              </div>
+
+              {/* NOC Document verification badge if present */}
+              {pass.nocDocumentUrl && (
+                <div className="bg-amber-50/80 p-2 rounded-lg border border-amber-200 flex items-center justify-between text-xs mt-1">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-3.5 h-3.5 text-amber-800" />
+                    <div>
+                      <span className="font-bold text-amber-950">NOC Certificate Attached:</span>{' '}
+                      <span className="text-amber-900 font-medium">{pass.nocDocumentName || 'Council NOC verified'}</span>
                     </div>
-                    <p className="text-xs text-neutral-600 leading-tight">
-                      Scan with smartphone camera to verify council authenticity.
-                    </p>
-                    <span className="text-xs font-mono text-neutral-500 block break-all font-semibold">
-                      Ref: {pass.passNumber}
-                    </span>
                   </div>
-                  {qrDataUrl && (
-                    <img
-                      src={qrDataUrl}
-                      alt="Land Pass Verification QR Code"
-                      className="w-20 h-20 border border-neutral-300 p-1 rounded-md bg-white shrink-0"
-                    />
-                  )}
+                  <span className="bg-amber-200 text-amber-950 font-bold px-2 py-0.5 rounded-full text-[10px]">
+                    Verified
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Ramri / Boundaries in Grid List (Four Cardinal Sides) */}
+            <div className="bg-neutral-50/90 rounded-xl border border-neutral-200 p-3 sm:p-3.5 print:p-2.5 mb-3 print:mb-2 space-y-2">
+              <div className="text-xs font-bold uppercase tracking-wider text-neutral-800 border-b border-neutral-200 pb-1 flex items-center justify-between">
+                <span>Ramri / Boundaries</span>
+                <span className="text-[11px] font-mono text-neutral-500 font-semibold">Grid List</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm print:text-xs">
+                {/* Hmar (North) */}
+                <div className="p-2 print:p-1.5 bg-white rounded-lg border border-neutral-200 flex flex-col justify-center">
+                  <span className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider">
+                    Hmar (North)
+                  </span>
+                  <span className="font-bold text-neutral-950 mt-0.5 text-xs sm:text-sm print:text-xs break-words">
+                    {pass.boundaryNorth || 'N/A'}
+                  </span>
+                </div>
+
+                {/* Chhak (East) */}
+                <div className="p-2 print:p-1.5 bg-white rounded-lg border border-neutral-200 flex flex-col justify-center">
+                  <span className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider">
+                    Chhak (East)
+                  </span>
+                  <span className="font-bold text-neutral-950 mt-0.5 text-xs sm:text-sm print:text-xs break-words">
+                    {pass.boundaryEast || 'N/A'}
+                  </span>
+                </div>
+
+                {/* Thlang (West) */}
+                <div className="p-2 print:p-1.5 bg-white rounded-lg border border-neutral-200 flex flex-col justify-center">
+                  <span className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider">
+                    Thlang (West)
+                  </span>
+                  <span className="font-bold text-neutral-950 mt-0.5 text-xs sm:text-sm print:text-xs break-words">
+                    {pass.boundaryWest || 'N/A'}
+                  </span>
+                </div>
+
+                {/* Chhim (South) */}
+                <div className="p-2 print:p-1.5 bg-white rounded-lg border border-neutral-200 flex flex-col justify-center">
+                  <span className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider">
+                    Chhim (South)
+                  </span>
+                  <span className="font-bold text-neutral-950 mt-0.5 text-xs sm:text-sm print:text-xs break-words">
+                    {pass.boundarySouth || 'N/A'}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* ============================================================== */}
-          {/* SIGNATORIES: SECRETARY & PRESIDENT SIGNATURES                  */}
+          {/* SIGNATURE & SEAL SECTION: PRESIDENT SIGNATURE & OFFICIAL SEAL   */}
+          {/* (Secretary name and designation text President removed per request) */}
           {/* ============================================================== */}
-          <div className="pt-6 border-t-2 border-neutral-900 mt-auto">
-            <div className="flex items-end justify-between gap-8">
-              {/* Secretary Signatory & Reverse Notice */}
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <div className="text-xs font-bold text-neutral-900">
-                    ({pass.secretarySignatory || village.secretaryName || 'Secretary'})
-                  </div>
-                  <div className="text-xs text-neutral-600 font-medium">
-                    Secretary, {village.villageName || 'Village Council'}
-                  </div>
+          <div className="pt-4 print:pt-3 border-t-2 border-neutral-900 mt-auto">
+            <div className="flex items-end justify-between gap-6">
+              {/* Left Side: Dedicated Official Seal Circle & Legal Reverse Notice */}
+              <div className="flex items-center gap-4">
+                {/* Official Seal Circle (text SEAL/CHHAP removed per request) */}
+                <div className="w-24 h-24 sm:w-26 sm:h-26 print:w-20 print:h-20 rounded-full border-2 border-dashed border-neutral-400 bg-neutral-50/70 flex flex-col items-center justify-center text-center p-2 shrink-0">
+                  <span className="text-[9px] print:text-[7.5px] text-neutral-600 font-bold leading-tight uppercase">
+                    {village.villageName || 'Village Council'}
+                  </span>
+                  <span className="text-[7.5px] print:text-[6.5px] text-neutral-500 font-mono mt-0.5 uppercase">
+                    Court &bull; Mizoram
+                  </span>
                 </div>
 
-                <div className="text-xs text-neutral-500 font-sans max-w-xs leading-tight">
-                  * Note: Conditions &amp; Restrictions governing this Land Pass are printed on the back page of this document.
+                <div className="space-y-1 max-w-[220px] sm:max-w-xs">
+                  <div className="text-[11px] font-bold text-neutral-800">
+                    Village Council Official Seal/Stamp
+                  </div>
+                  <div className="text-[10px] print:text-[9px] text-neutral-500 leading-tight font-sans">
+                    * Note: Conditions &amp; Restrictions governing this Land Pass are printed on the back page of this document.
+                  </div>
                 </div>
               </div>
 
-              {/* PRESIDENT SIGNATURE AREA (SPACE RESERVED FOR PHYSICAL SIGNATURE, DESIGNATION REMOVED) */}
+              {/* Right Side: Physical Signature above Name, and Reserved Space for Seal under Name */}
               <div className="flex flex-col items-end text-right">
-                {/* Reserved space for President physical signature */}
-                <div className="h-16 sm:h-20 min-h-[64px] w-52 sm:w-64" aria-hidden="true" />
+                {/* Signature space above President name */}
+                <div className="h-9 sm:h-11 print:h-9 min-h-[36px] w-52 sm:w-64" aria-hidden="true" />
 
-                <div className="text-sm sm:text-base font-black text-neutral-950">
+                {/* President Name */}
+                <div className="text-sm sm:text-base print:text-sm font-black text-neutral-950">
                   ({presidentName || pass.presidentSignatory || village.presidentName || '________________________'})
                 </div>
-                <div className="text-xs font-mono text-neutral-500 font-medium mt-1">
-                  Date: ________________________
+
+                {/* Reserved Space UNDER President Name for Seal */}
+                <div className="h-14 sm:h-16 print:h-14 min-h-[56px] w-52 sm:w-64 flex items-center justify-end" aria-hidden="true">
+                  {/* Clean open space reserved for physical President seal */}
+                </div>
+
+                <div className="text-xs font-mono text-neutral-600 font-semibold mt-0.5">
+                  Issue Date: {pass.issueDate}
                 </div>
               </div>
             </div>
 
             {/* Bottom Security Footer */}
-            <div className="mt-4 pt-2 border-t border-neutral-200 text-center text-xs text-neutral-500 font-mono">
+            <div className="mt-3 pt-1.5 border-t border-neutral-200 text-center text-[10px] sm:text-xs text-neutral-500 font-mono">
               Government of Mizoram &bull; Village Council Land Registry System &bull; Pass Serial: {pass.passNumber} &bull; Page 1 of 2
             </div>
           </div>
