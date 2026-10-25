@@ -1,35 +1,90 @@
 @import "tailwindcss";
 
-@layer utilities {
-  @media print {
-    @page {
-      size: A4 portrait;
-      margin: 8mm;
-    }
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
 
-    body {
-      background: white !important;
-      color: black !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
+  html,
+  body {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 
-    /* Hide web navbar, floating overlays, scrollbars during physical print or PDF save */
-    header,
-    nav,
-    .print\:hidden {
-      display: none !important;
-    }
+  /* Hide EVERYTHING outside of the print/save certificate view */
+  header,
+  nav,
+  main,
+  footer,
+  aside,
+  .print\:hidden {
+    display: none !important;
+  }
 
-    .print-a4-page {
-      width: 100% !important;
-      max-width: 100% !important;
-      min-height: auto !important;
-      box-shadow: none !important;
-      border: 3px double #000 !important;
-      margin: 0 !important;
-      padding: 16px !important;
-      page-break-inside: avoid;
-    }
+  /* Unset modal overlay and backdrop during print */
+  .printable-land-pass-modal {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    overflow: visible !important;
+    display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .printable-land-pass-wrapper {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* Default A4 Sheet: exactly 210mm wide x 297mm tall */
+  .a4-print-sheet {
+    width: 210mm !important;
+    height: 296.5mm !important;
+    min-height: 296.5mm !important;
+    max-height: 296.5mm !important;
+    box-sizing: border-box !important;
+    margin: 0 auto !important;
+    padding: 8mm 10mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 3px double #171717 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    overflow: hidden !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+  .a4-print-sheet.last-sheet {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  /* Ensure crisp text and borders for physical printing */
+  .a4-print-sheet * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }

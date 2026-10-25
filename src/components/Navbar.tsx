@@ -77,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onFilterChange,
 }) => {
   return (
-    <header className="sticky top-0 z-30 bg-emerald-950 text-white shadow-lg border-b border-emerald-900">
+    <header className="sticky top-0 z-30 bg-emerald-950 text-white shadow-lg border-b border-emerald-900 print:hidden">
       {/* Top village council identity bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between py-3 gap-3">

@@ -54,6 +54,7 @@ export const PrintableLandPass: React.FC<PrintableLandPassProps> = ({
 }) => {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
+  const [printScope, setPrintScope] = useState<'both' | 'page1'>('both');
 
   // Editable President Name for signature
   const [presidentName, setPresidentName] = useState<string>(
@@ -251,7 +252,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-xs flex justify-center p-2 sm:p-6 print:p-0 print:bg-white print:static print:inset-auto">
+    <div className="printable-land-pass-modal fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-xs flex justify-center p-2 sm:p-6 print:p-0 print:bg-white print:static print:inset-auto">
       {/* Hidden file input for emblem logo */}
       <input
         ref={emblemInputRef}
@@ -261,12 +262,12 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
         className="hidden"
       />
 
-      <div className="w-full max-w-4xl flex flex-col items-center">
+      <div className="printable-land-pass-wrapper w-full max-w-4xl flex flex-col items-center">
         {/* ============================================================== */}
         {/* TOP CONTROL BAR (HIDDEN IN PRINT)                             */}
         {/* ============================================================== */}
-        <div className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl p-3 sm:p-4 mb-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-xl print:hidden text-white">
-          <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl p-3 sm:p-4 mb-4 flex flex-col lg:flex-row items-center justify-between gap-3 shadow-xl print:hidden text-white">
+          <div className="flex items-center gap-3 w-full lg:w-auto">
             <div className="p-2 bg-emerald-900/80 rounded-xl text-emerald-400">
               <FileText className="w-5 h-5" />
             </div>
@@ -278,24 +279,52 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
                 </span>
               </h3>
               <p className="text-xs text-neutral-400">
-                Official 2-Page Print &amp; PDF Archival View &bull; Default Clean Modern Sans
+                Official A4 Print &amp; PDF Archival View &bull; Default Clean Modern Sans
               </p>
             </div>
           </div>
 
-          {/* Quick Input for President Name & Emblem Controls */}
-          <div className="flex items-center gap-2 flex-wrap justify-end w-full md:w-auto">
+          {/* Quick Input for President Name, Scope & Print Controls */}
+          <div className="flex items-center gap-2 flex-wrap justify-end w-full lg:w-auto">
+            {/* Print Scope Selector: Both Pages vs Page 1 Only */}
+            <div className="flex items-center bg-neutral-800 p-0.5 rounded-xl border border-neutral-700 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setPrintScope('both')}
+                className={`px-2.5 py-1 rounded-lg transition ${
+                  printScope === 'both'
+                    ? 'bg-emerald-700 text-white shadow-xs'
+                    : 'text-neutral-300 hover:text-white'
+                }`}
+                title="Print both Front Certificate and Back Conditions pages on A4"
+              >
+                Both Pages
+              </button>
+              <button
+                type="button"
+                onClick={() => setPrintScope('page1')}
+                className={`px-2.5 py-1 rounded-lg transition ${
+                  printScope === 'page1'
+                    ? 'bg-emerald-700 text-white shadow-xs'
+                    : 'text-neutral-300 hover:text-white'
+                }`}
+                title="Print Page 1 Certificate Only on standard A4"
+              >
+                Page 1 Only
+              </button>
+            </div>
+
             {/* Input President name for signature */}
-            <div className="flex items-center gap-1.5 bg-neutral-800 px-3 py-1.5 rounded-xl border border-neutral-700">
+            <div className="flex items-center gap-1.5 bg-neutral-800 px-2.5 py-1.5 rounded-xl border border-neutral-700">
               <span className="text-xs text-neutral-400 font-semibold whitespace-nowrap">
-                President Name:
+                President:
               </span>
               <input
                 type="text"
                 placeholder="Enter President Name"
                 value={presidentName}
                 onChange={(e) => handlePresidentNameChange(e.target.value)}
-                className="bg-neutral-900 border border-neutral-600 rounded-lg px-2 py-0.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-36 sm:w-44 font-semibold"
+                className="bg-neutral-900 border border-neutral-600 rounded-lg px-2 py-0.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-32 sm:w-40 font-semibold"
                 title="Input President Name for signature line"
               />
             </div>
@@ -303,11 +332,11 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
             {/* Change Emblem Logo button */}
             <button
               onClick={() => emblemInputRef.current?.click()}
-              className="px-3 py-1.5 bg-emerald-900 hover:bg-emerald-800 text-emerald-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-emerald-700"
+              className="px-2.5 py-1.5 bg-emerald-900 hover:bg-emerald-800 text-emerald-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-emerald-700"
               title="Upload / Change official Emblem Logo for print/save view"
             >
               <Camera className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{emblemLogoUrl ? 'Change Emblem' : 'Upload Emblem'}</span>
+              <span>{emblemLogoUrl ? 'Emblem' : 'Emblem'}</span>
             </button>
 
             {emblemLogoUrl && (
@@ -342,21 +371,21 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
 
             <button
               onClick={handlePrint}
-              className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
-              title="Print Certificate (Page 1 & Back Page 2)"
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+              title="Print / Save PDF (A4 Portrait - Prints only this certificate)"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Print / Save PDF</span>
+              <span>Print / Save PDF (A4)</span>
             </button>
 
             {onDelete && (
               <button
                 onClick={() => onDelete(pass)}
-                className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-rose-800 shadow-xs"
+                className="px-2.5 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-rose-800 shadow-xs"
                 title="Delete this Land Pass (Opens warning dialogue box)"
               >
                 <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-                <span className="hidden sm:inline">Delete Pass</span>
+                <span className="hidden sm:inline">Delete</span>
               </button>
             )}
 
@@ -375,7 +404,9 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
         {/* ============================================================== */}
         <div
           id="land-pass-certificate-page-1"
-          className={`print-a4-page w-full ${themeCols.pageBg} text-neutral-900 rounded-xl shadow-2xl p-6 sm:p-9 ${fontClass} relative overflow-hidden print:m-0 print:w-full print:rounded-none print:shadow-none print:p-8 min-h-[1050px] flex flex-col justify-between`}
+          className={`a4-print-sheet print-a4-page w-full ${themeCols.pageBg} text-neutral-900 rounded-xl shadow-2xl p-6 sm:p-9 ${fontClass} relative overflow-hidden print:m-0 print:w-full print:rounded-none print:shadow-none min-h-[1050px] flex flex-col justify-between ${
+            printScope === 'page1' ? 'last-sheet' : ''
+          }`}
           style={{
             border:
               settings.borderStyle === 'double'
@@ -703,7 +734,9 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
         {/* ============================================================== */}
         <div
           id="land-pass-certificate-page-2"
-          className="print:break-before-page w-full bg-white text-neutral-900 rounded-xl shadow-2xl p-6 sm:p-10 font-sans relative overflow-hidden print:m-0 print:w-full print:rounded-none print:shadow-none print:p-10 mt-6 min-h-[1050px] flex flex-col justify-between"
+          className={`a4-print-sheet last-sheet print:break-before-page w-full bg-white text-neutral-900 rounded-xl shadow-2xl p-6 sm:p-10 font-sans relative overflow-hidden print:m-0 print:w-full print:rounded-none print:shadow-none mt-6 min-h-[1050px] flex flex-col justify-between ${
+            printScope === 'page1' ? 'print:hidden' : ''
+          }`}
           style={{
             fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
             border:
@@ -789,7 +822,9 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
             className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg transition"
           >
             <Printer className="w-4 h-4" />
-            <span>Print / Save PDF (Front &amp; Back Pages)</span>
+            <span>
+              Print / Save PDF (A4) - {printScope === 'both' ? 'Both Pages' : 'Page 1 Only'}
+            </span>
           </button>
           {onDelete && (
             <button

@@ -870,24 +870,26 @@ export default function App() {
   if (!currentUser && !isFullAuthority) {
     return (
       <>
-        <AuthPortalPage
-          onLoginSuccess={(user) => {
-            setCurrentUser(user);
-            localStorage.setItem('mizoram_vc_current_user', JSON.stringify(user));
-            showNotification(`Welcome, ${user.displayName || user.username}!`, 'success');
-          }}
-          onOpenAuthorityMode={() => {
-            setIsFullAuthority(true);
-            try {
-              sessionStorage.setItem('mizoram_vc_full_authority', 'true');
-            } catch {}
-            setIsFullAuthorityModalOpen(true);
-          }}
-          allPasses={passes}
-          onViewPass={(pass) => {
-            setSelectedPassForPrint(pass);
-          }}
-        />
+        <div className="print:hidden">
+          <AuthPortalPage
+            onLoginSuccess={(user) => {
+              setCurrentUser(user);
+              localStorage.setItem('mizoram_vc_current_user', JSON.stringify(user));
+              showNotification(`Welcome, ${user.displayName || user.username}!`, 'success');
+            }}
+            onOpenAuthorityMode={() => {
+              setIsFullAuthority(true);
+              try {
+                sessionStorage.setItem('mizoram_vc_full_authority', 'true');
+              } catch {}
+              setIsFullAuthorityModalOpen(true);
+            }}
+            allPasses={passes}
+            onViewPass={(pass) => {
+              setSelectedPassForPrint(pass);
+            }}
+          />
+        </div>
 
         {/* Printable Land Pass Modal (if public verifies and views certificate) */}
         {selectedPassForPrint && (
@@ -962,14 +964,14 @@ export default function App() {
 
       {/* Temporary Alert Banner */}
       {notification && (
-        <div className="bg-emerald-950 text-white px-4 py-2 text-center text-xs font-medium flex items-center justify-center gap-2 shadow-inner transition-all">
+        <div className="bg-emerald-950 text-white px-4 py-2 text-center text-xs font-medium flex items-center justify-center gap-2 shadow-inner transition-all print:hidden">
           <CheckCircle2 className="w-4 h-4 text-emerald-300" />
           <span>{notification.message}</span>
         </div>
       )}
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 space-y-6 print:hidden">
         {/* VIEW A: DEDICATED SECRETARY PROFILE PAGE */}
         {currentPage === 'secretary_profile' && currentUser && (
           <SecretaryProfilePage
@@ -1352,7 +1354,7 @@ export default function App() {
       </main>
 
       {/* Official State Footer */}
-      <footer className="mt-auto bg-neutral-900 text-neutral-400 text-xs py-6 border-t border-neutral-800">
+      <footer className="mt-auto bg-neutral-900 text-neutral-400 text-xs py-6 border-t border-neutral-800 print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <div>
             <span className="font-semibold text-neutral-200">
