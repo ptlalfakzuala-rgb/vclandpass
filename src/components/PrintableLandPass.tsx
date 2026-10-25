@@ -438,12 +438,12 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
 
           <div>
             {/* TIGHT & REFINED LETTERHEAD HEADER */}
-            <div className="border-b-2 border-neutral-900 pb-3 mb-4">
-              <div className="flex items-center justify-between gap-4">
-                {/* Council Logo (Left Frame) */}
+            <div className="border-b-2 border-neutral-900 pb-3 mb-4 print:pb-2 print:mb-3">
+              <div className="flex items-center justify-between gap-3 sm:gap-4 print:gap-3">
+                {/* Council Logo (Left Frame) - Reduced size for clean A4 letterhead proportion */}
                 <div className="shrink-0 flex items-center justify-center">
                   {village.logoUrl ? (
-                    <div className="w-[120px] h-[120px] sm:w-[130px] sm:h-[130px] rounded-xl border border-neutral-300 p-1 bg-white shadow-2xs flex items-center justify-center overflow-hidden">
+                    <div className="w-20 h-20 sm:w-[88px] sm:h-[88px] print:w-[72px] print:h-[72px] rounded-xl border border-neutral-300 p-1 bg-white shadow-2xs flex items-center justify-center overflow-hidden">
                       <img
                         src={village.logoUrl}
                         alt={`${village.villageName || 'Council'} Logo`}
@@ -451,39 +451,39 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
                       />
                     </div>
                   ) : (
-                    <div className="w-[120px] h-[120px] sm:w-[130px] sm:h-[130px] rounded-xl border-2 border-double border-neutral-800 p-2 bg-amber-50/70 flex flex-col items-center justify-center text-center shadow-2xs">
-                      <div className="w-10 h-10 rounded-full border-2 border-neutral-800 flex items-center justify-center mb-1 bg-white font-bold text-xs">
+                    <div className="w-20 h-20 sm:w-[88px] sm:h-[88px] print:w-[72px] print:h-[72px] rounded-xl border-2 border-double border-neutral-800 p-1.5 bg-amber-50/70 flex flex-col items-center justify-center text-center shadow-2xs">
+                      <div className="w-7 h-7 rounded-full border border-neutral-800 flex items-center justify-center mb-0.5 bg-white font-bold text-[10px]">
                         VC
                       </div>
-                      <span className="text-[11px] font-black tracking-widest uppercase text-neutral-900">
+                      <span className="text-[9px] font-black tracking-widest uppercase text-neutral-900 leading-none">
                         COURT
                       </span>
-                      <span className="text-[10px] text-neutral-600">
+                      <span className="text-[8px] text-neutral-600 leading-none mt-0.5">
                         MIZORAM
                       </span>
                     </div>
                   )}
                 </div>
 
-                {/* Main Heading Text */}
-                <div className="text-center flex-1 space-y-1">
-                  <div className="inline-block bg-neutral-900 text-white text-xs font-mono tracking-widest px-3.5 py-0.5 rounded-full uppercase font-bold mb-0.5">
+                {/* Main Heading Text - Fits in a single line on standard A4 print/save */}
+                <div className="text-center flex-1 min-w-0 px-2 space-y-1">
+                  <div className="inline-block bg-neutral-900 text-white text-[11px] sm:text-xs font-mono tracking-widest px-3 py-0.5 rounded-full uppercase font-bold mb-0.5">
                     Government of Mizoram
                   </div>
-                  <h1 className="text-xl sm:text-2xl font-black tracking-wider text-neutral-950 uppercase leading-tight">
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-black tracking-wide sm:tracking-wider text-neutral-950 uppercase leading-tight whitespace-nowrap overflow-hidden text-ellipsis print:text-[20px] print:tracking-normal print:leading-snug print:whitespace-nowrap">
                     OFFICE OF THE VILLAGE COUNCIL
                   </h1>
-                  <h2 className="text-lg sm:text-xl font-bold text-neutral-900 uppercase">
+                  <h2 className="text-base sm:text-lg font-bold text-neutral-900 uppercase whitespace-nowrap overflow-hidden text-ellipsis print:text-base print:leading-tight">
                     {village.villageName ? `${village.villageName.toUpperCase()} : MIZORAM` : 'VILLAGE COUNCIL, MIZORAM'}
                   </h2>
-                  <p className="text-xs sm:text-sm text-neutral-700 font-medium">
+                  <p className="text-xs sm:text-sm text-neutral-700 font-medium whitespace-nowrap overflow-hidden text-ellipsis print:text-xs">
                     {village.districtName ? `${village.districtName}` : 'Mizoram'} {village.blockName ? `• ${village.blockName}` : ''} {village.pinCode ? `• PIN: ${village.pinCode}` : ''}
                   </p>
                 </div>
 
-                {/* State / Official Emblem Logo Frame (Right Frame - Customizable) */}
+                {/* State / Official Emblem Logo Frame (Right Frame - Reduced size for clean A4 proportion) */}
                 <div
-                  className="shrink-0 flex flex-col items-center justify-center w-[120px] h-[120px] sm:w-[130px] sm:h-[130px] border border-neutral-300 rounded-xl p-1 bg-white text-center shadow-2xs relative group cursor-pointer"
+                  className="shrink-0 flex flex-col items-center justify-center w-20 h-20 sm:w-[88px] sm:h-[88px] print:w-[72px] print:h-[72px] border border-neutral-300 rounded-xl p-1 bg-white text-center shadow-2xs relative group cursor-pointer"
                   onClick={() => emblemInputRef.current?.click()}
                   title="Click to Change Emblem Logo"
                 >
@@ -493,13 +493,13 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
                     className="w-full h-full object-contain"
                   />
                   <div className="absolute inset-0 bg-black/40 text-white text-[10px] font-bold rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition print:hidden">
-                    Change Emblem
+                    Change
                   </div>
 
                   {/* Hover prompt in preview mode (hidden in print) */}
                   <div className="absolute inset-0 bg-neutral-900/60 text-white rounded-xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition print:hidden">
-                    <Camera className="w-4 h-4 mb-0.5" />
-                    <span className="text-[10px] font-bold">Change Emblem</span>
+                    <Camera className="w-3.5 h-3.5 mb-0.5" />
+                    <span className="text-[9px] font-bold">Change</span>
                   </div>
                 </div>
               </div>
