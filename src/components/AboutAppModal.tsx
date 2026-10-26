@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   X,
   FileText,
@@ -20,7 +20,10 @@ import {
   Mail,
   AlertTriangle,
   Award,
-  Check
+  Check,
+  Share2,
+  Download,
+  Copy
 } from 'lucide-react';
 
 interface AboutAppModalProps {
@@ -29,51 +32,145 @@ interface AboutAppModalProps {
 }
 
 export const AboutAppModal: React.FC<AboutAppModalProps> = ({ isOpen, onClose }) => {
+  const [copied, setCopied] = useState<boolean>(false);
+  const [shareSuccess, setShareSuccess] = useState<string | null>(null);
+
   if (!isOpen) return null;
 
+  // Handle Save / Print as PDF
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = 'Mizoram_Village_Council_Land_Pass_App_Chungchang.pdf';
+    window.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000);
+  };
+
+  // Handle Share Document via Web Share API or Clipboard Copy
+  const handleShare = async () => {
+    const shareText = `Mizoram Village Council (V/C) Land Pass Management System Chungchang:\n\nHe application hi Mizoram Village Council-te tana Huan Ram leh In Hmun Pass Digital Enkawlna, A4 Print & PDF, GPS Coordinates leh QR Verification nei a ni.\n\nSupport & Technical Enquiries:\nWhatsApp/Phone: +91 7005504074\nEmail: ptlalfakzuala@gmail.com\n\nLink: ${window.location.origin}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Mizoram Village Council Land Pass App Chungchang',
+          text: shareText,
+          url: window.location.href,
+        });
+        setShareSuccess('Shared successfully!');
+        setTimeout(() => setShareSuccess(null), 3000);
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+
+    // Fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      setShareSuccess('Document link & details copied to clipboard!');
+      setTimeout(() => {
+        setCopied(false);
+        setShareSuccess(null), 3500;
+      }, 3500);
+    } catch {
+      setShareSuccess('Could not copy link');
+      setTimeout(() => setShareSuccess(null), 2500);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xs select-none">
-      <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-neutral-200 overflow-hidden flex flex-col max-h-[92vh]">
-        {/* Header */}
-        <div className="px-6 py-4 bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-900 shrink-0">
+    <div className="printable-about-modal fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xs select-none animate-backdrop-fade">
+      <div className="printable-about-wrapper bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-neutral-200 overflow-hidden flex flex-col max-h-[92vh] animate-modal-pop">
+        {/* Top Header & Actions Bar */}
+        <div className="px-6 py-4 bg-white border-b border-neutral-200 text-neutral-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 print:hidden">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-900 rounded-2xl text-amber-300 shadow-inner">
+            <div className="p-2.5 bg-emerald-100 rounded-2xl text-emerald-800 shadow-inner">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-serif font-black text-lg sm:text-xl flex items-center gap-2">
+              <h2 className="font-serif font-black text-lg sm:text-xl flex items-center gap-2 text-neutral-900">
                 <span>Mizoram Village Council Land Pass App Chungchang</span>
-                <span className="text-[10px] bg-amber-500 text-neutral-950 px-2.5 py-0.5 rounded-full font-sans uppercase font-bold tracking-wider">
+                <span className="text-[10px] bg-emerald-700 text-white px-2.5 py-0.5 rounded-full font-sans uppercase font-bold tracking-wider">
                   Mizo Tawngin Chipchiar
                 </span>
               </h2>
-              <p className="text-xs text-emerald-300/90 font-medium">
+              <p className="text-xs text-neutral-500 font-medium">
                 Village Council Huan Ram leh In Hmun Pass Digital Enkawlna &bull; Chipchiar Taka Hrilhfiahna
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer"
-            title="Kharna"
-          >
-            <X className="w-5 h-5" />
-          </button>
+
+          <div className="flex items-center gap-2 justify-end">
+            {/* Share Document Button */}
+            <button
+              type="button"
+              onClick={handleShare}
+              className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-neutral-300 shadow-2xs cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs active:translate-y-0 active:scale-95 group"
+              title="Share App Chungchang via WhatsApp, Social media or Copy Link"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 scale-110" /> : <Share2 className="w-3.5 h-3.5 text-neutral-700 transition-transform duration-200 group-hover:scale-110" />}
+              <span>{copied ? 'Copied' : 'Share'}</span>
+            </button>
+
+            {/* Save / Print as PDF Button */}
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 group"
+              title="Print or Save as PDF (Clean A4 Document layout without website clutter)"
+            >
+              <Printer className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
+              <span>Save / Print PDF</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-xl text-neutral-400 hover:text-neutral-800 hover:bg-neutral-100 transition-all duration-200 hover:rotate-90 cursor-pointer"
+              title="Kharna (Close)"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Content Body */}
-        <div className="p-5 sm:p-8 overflow-y-auto space-y-6 text-neutral-800 text-sm leading-relaxed">
+        {/* Temporary Share Toast */}
+        {shareSuccess && (
+          <div className="bg-emerald-700 text-white px-4 py-2 text-center text-xs font-semibold flex items-center justify-center gap-2 print:hidden animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+            <span>{shareSuccess}</span>
+          </div>
+        )}
+
+        {/* Content Body: Printable Document Container */}
+        <div className="printable-about-content p-5 sm:p-8 overflow-y-auto space-y-6 text-neutral-800 text-sm leading-relaxed">
+          {/* Printable Official Letterhead Header (Appears in Print & Screen) */}
+          <div className="border-b-2 border-neutral-900 pb-4 text-center space-y-1">
+            <div className="text-[11px] font-mono font-bold tracking-widest text-emerald-800 uppercase">
+              MIZORAM VILLAGE COUNCIL DIGITAL LAND REGISTRY
+            </div>
+            <h1 className="font-serif font-black text-xl sm:text-2xl text-neutral-900 uppercase tracking-wide">
+              VILLAGE COUNCIL HUAN RAM &amp; IN HMUN LAND PASS SYSTEM
+            </h1>
+            <p className="text-xs font-semibold text-neutral-600">
+              App Chungchang Hrilhfiahna &bull; Secretary &bull; Mipuite Tana Hriattirna Felfai
+            </p>
+          </div>
+
           {/* Banner Hero */}
-          <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white p-5 sm:p-6 rounded-2xl border border-emerald-800 shadow-md">
+          <div className="bg-gradient-to-br from-emerald-800 to-emerald-950 text-white p-5 sm:p-6 rounded-2xl border border-emerald-700 shadow-sm print:bg-none print:border print:border-neutral-300 print:text-neutral-900 print:p-4">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-emerald-800/80 rounded-2xl text-amber-300 shrink-0 mt-0.5">
+              <div className="p-3 bg-emerald-700/80 rounded-2xl text-amber-300 shrink-0 mt-0.5 print:hidden">
                 <Sparkles className="w-6 h-6" />
               </div>
               <div className="space-y-1.5">
-                <h3 className="font-serif font-black text-base sm:text-lg text-white">
+                <h3 className="font-serif font-black text-base sm:text-lg text-white print:text-neutral-900">
                   Mizoram Village Council Land Pass Management System Bulpui
                 </h3>
-                <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed font-sans">
+                <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed font-sans print:text-neutral-700">
                   He application hi <strong>Mizoram Village Council (V/C)</strong> te tana bika buatsaih, <strong>Huan Ram leh In Hmun Land Pass</strong> felfai, rintlak leh changkang taka enkawl, chhuah, leh chhinchhiahna (Digital Land Registry System) a ni. Hmanlai lehkha bu hlui, chhia leh boral thei laka fihlimin, khawtlang rorelna leh ram pek chungchang rintlak leh zahawm taka digital hmanga kumhlun vawn thatna hmanrua a ni.
                 </p>
               </div>
@@ -208,7 +305,7 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({ isOpen, onClose })
               </div>
               <ul className="text-xs text-neutral-700 space-y-1.5 list-disc list-inside leading-relaxed pl-1">
                 <li><strong>Kumhlun Hman Man (Lifetime):</strong> Vawi khat chauh ₹299 pein Authority hnen aṭangin Lifetime Approval pek a ni. Thla tin fee emaw kum tin fee a awm lo.</li>
-                <li><strong>UPI Payment:</strong> <code>ptlalfakzuala@okhdfcbank</code> (Google Pay, PhonePe, Paytm, BHIM) hmangin awlsam takin a pek theih.</li>
+                <li><strong>UPI Payment:</strong> <code>ptlalfakzuala@oksbi</code> (Google Pay, PhonePe, Paytm, BHIM) hmangin awlsam takin a pek theih.</li>
                 <li><strong>Secret Key Himna:</strong> Secretary tinte'n mahni Secret Key an nei a, Full Authority mode-ah a ṭul hun atan a en theih a, account delete theih a ni bawk.</li>
               </ul>
             </div>
@@ -217,10 +314,10 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({ isOpen, onClose })
             <div className="p-4 bg-neutral-100 rounded-xl border border-neutral-300 space-y-2">
               <div className="flex items-center gap-2 font-bold text-neutral-900 text-sm">
                 <Wifi className="w-4 h-4 text-neutral-700" />
-                <span>F. Offline Hmunah Pawh Hman Theih (Encrypted Local Storage)</span>
+                <span>F. Offline Hmunah Pawh Hman Theih (Silent Cloud Background Sync)</span>
               </div>
               <p className="text-xs text-neutral-700 leading-relaxed">
-                Internet awm lohna ram kilkhawr berah pawh pass siam zel theih a ni a, phone-ah him takin a inkhawl ṭha a. Internet awm veleh Firebase Realtime Cloud-ah a in-sync nghal zel a ni.
+                Internet awm lohna ram kilkhawr berah pawh pass siam zel theih a ni a, phone-ah him takin a inkhawl ṭha a. Internet awm veleh Firebase Realtime Cloud-ah a in-sync nghal zel a, background-ah amahin a thawk reng a ni.
               </p>
             </div>
           </div>
@@ -275,7 +372,7 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({ isOpen, onClose })
           </div>
 
           {/* Direct Support & Authority Contact */}
-          <div className="bg-gradient-to-r from-emerald-950 to-neutral-900 text-white p-5 rounded-2xl border border-emerald-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+          <div className="bg-gradient-to-r from-emerald-900 to-neutral-900 text-white p-5 rounded-2xl border border-emerald-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
             <div className="space-y-1">
               <span className="font-bold text-amber-300 text-sm block">
                 Direct Authority &amp; Technical Support:
@@ -287,12 +384,24 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({ isOpen, onClose })
                 Village Council Secretary registration approval, thurawn, leh technical puihna atan biakpawh theih reng a ni.
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-md shrink-0 cursor-pointer"
-            >
-              Hrethiam E (Close)
-            </button>
+            <div className="flex items-center gap-2 shrink-0 print:hidden">
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="px-4 py-2.5 bg-white text-emerald-950 font-bold rounded-xl hover:bg-neutral-100 transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Export PDF</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-md cursor-pointer"
+              >
+                Hrethiam E (Close)
+              </button>
+            </div>
           </div>
         </div>
       </div>

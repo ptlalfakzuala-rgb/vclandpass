@@ -284,8 +284,8 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xs overflow-y-auto">
-        <div className="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-neutral-300 overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xs overflow-y-auto animate-backdrop-fade">
+        <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-neutral-300 overflow-hidden flex flex-col max-h-[92vh] animate-modal-pop">
           {/* Header */}
           <div className="px-6 py-4 bg-gradient-to-r from-amber-950 via-neutral-900 to-amber-950 text-white flex items-center justify-between border-b border-amber-900/60 shrink-0">
             <div className="flex items-center gap-3">
@@ -312,7 +312,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                 <button
                   type="button"
                   onClick={onTransferToRTDB}
-                  className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs active:translate-y-0 active:scale-95 flex items-center gap-1.5 shadow-xs cursor-pointer"
                   title="Transfer all data to Firebase Realtime Database"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
@@ -323,14 +323,14 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                 <button
                   type="button"
                   onClick={onExitAuthorityMode}
-                  className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-xs font-medium transition border border-neutral-700 cursor-pointer"
+                  className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-xl text-xs font-medium transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95 border border-neutral-700 cursor-pointer"
                 >
                   Exit Authority
                 </button>
               )}
               <button
                 onClick={onClose}
-                className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer"
+                className="p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all duration-200 hover:rotate-90 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>

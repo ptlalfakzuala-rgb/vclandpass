@@ -32,12 +32,12 @@ export const AuthorityKeyModal: React.FC<AuthorityKeyModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-neutral-300 space-y-4">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-backdrop-fade">
+      <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-neutral-300 space-y-4 animate-modal-pop">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-amber-100 text-amber-900 rounded-xl">
+            <div className="p-2 bg-amber-100 text-amber-900 rounded-xl shadow-inner">
               <KeyRound className="w-5 h-5" />
             </div>
             <div>
@@ -55,7 +55,7 @@ export const AuthorityKeyModal: React.FC<AuthorityKeyModalProps> = ({
               setKeyInput('');
               onClose();
             }}
-            className="text-neutral-400 hover:text-neutral-600 transition"
+            className="text-neutral-400 hover:text-neutral-600 transition-all duration-200 hover:rotate-90 cursor-pointer p-1"
           >
             <X className="w-5 h-5" />
           </button>
@@ -76,12 +76,12 @@ export const AuthorityKeyModal: React.FC<AuthorityKeyModalProps> = ({
                 if (error) setError('');
               }}
               placeholder="••••••••"
-              className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-center font-mono text-lg tracking-widest font-bold focus:ring-2 focus:ring-amber-500 focus:bg-white"
+              className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl text-center font-mono text-lg tracking-widest font-bold focus:ring-2 focus:ring-amber-500 focus:bg-white transition"
             />
           </div>
 
           {error && (
-            <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 flex items-center gap-1.5">
+            <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-1.5">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -95,13 +95,13 @@ export const AuthorityKeyModal: React.FC<AuthorityKeyModalProps> = ({
                 setKeyInput('');
                 onClose();
               }}
-              className="px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-100 rounded-lg transition"
+              className="px-3 py-2 text-xs text-neutral-600 hover:bg-neutral-100 rounded-xl cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95 font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1.5"
+              className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 flex items-center gap-1.5"
             >
               <Check className="w-4 h-4" /> Verify &amp; Unlock
             </button>

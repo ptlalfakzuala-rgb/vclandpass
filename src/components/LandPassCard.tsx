@@ -35,7 +35,7 @@ export const LandPassCard: React.FC<LandPassCardProps> = ({
   const isHuanRam = pass.passType === 'huan_ram';
 
   return (
-    <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs hover:shadow-md transition duration-200 overflow-hidden flex flex-col justify-between group">
+    <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-xs hover:shadow-xl hover:border-emerald-300 transition-all duration-300 ease-out hover:-translate-y-1 overflow-hidden flex flex-col justify-between group">
       {/* Top Banner */}
       <div
         className={`px-5 py-3.5 flex items-center justify-between border-b ${
@@ -46,7 +46,7 @@ export const LandPassCard: React.FC<LandPassCardProps> = ({
       >
         <div className="flex items-center gap-2">
           <span
-            className={`text-xs px-2.5 py-1 rounded-md font-bold tracking-wider font-mono ${
+            className={`text-xs px-2.5 py-1 rounded-md font-bold tracking-wider font-mono transition-transform duration-200 group-hover:scale-105 ${
               isHuanRam
                 ? 'bg-emerald-800 text-white'
                 : 'bg-blue-800 text-white'
@@ -84,8 +84,8 @@ export const LandPassCard: React.FC<LandPassCardProps> = ({
       <div className="p-5 space-y-3.5 flex-1">
         {/* Owner Details */}
         <div>
-          <h3 className="font-serif font-bold text-lg text-neutral-900 group-hover:text-emerald-900 transition flex items-center gap-1.5">
-            <User className="w-4 h-4 text-neutral-400" />
+          <h3 className="font-serif font-bold text-lg text-neutral-900 group-hover:text-emerald-900 transition-colors duration-200 flex items-center gap-1.5">
+            <User className="w-4 h-4 text-neutral-400 transition-transform duration-200 group-hover:scale-110" />
             {pass.ownerName}
           </h3>
           <p className="text-xs text-neutral-600 mt-0.5">
@@ -158,16 +158,16 @@ export const LandPassCard: React.FC<LandPassCardProps> = ({
       <div className="px-5 py-3 bg-neutral-50/80 border-t border-neutral-100 flex items-center justify-between gap-2">
         <button
           onClick={() => onPrint(pass)}
-          className="flex-1 px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs rounded-xl flex items-center justify-center gap-1.5 transition shadow-xs"
+          className="flex-1 px-3 py-2 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-medium text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 group/btn"
           title="Open printable A4 format and save as PDF"
         >
-          <Printer className="w-3.5 h-3.5" />
+          <Printer className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:scale-110" />
           <span>Print / PDF (A4)</span>
         </button>
 
         <button
           onClick={() => onVerify(pass)}
-          className="p-2 text-neutral-600 hover:text-emerald-800 hover:bg-neutral-200/60 rounded-xl transition"
+          className="p-2 text-neutral-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl cursor-pointer transition-all duration-200 ease-out hover:scale-110 active:scale-90"
           title="Verify QR & Authenticity"
         >
           <QrCode className="w-4 h-4" />
@@ -175,7 +175,7 @@ export const LandPassCard: React.FC<LandPassCardProps> = ({
 
         <button
           onClick={() => onEdit(pass)}
-          className="p-2 text-neutral-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition"
+          className="p-2 text-neutral-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl cursor-pointer transition-all duration-200 ease-out hover:scale-110 active:scale-90"
           title="Edit Land Pass Details"
         >
           <Edit2 className="w-4 h-4" />
@@ -183,7 +183,7 @@ export const LandPassCard: React.FC<LandPassCardProps> = ({
 
         <button
           onClick={() => onDelete(pass)}
-          className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition border border-transparent hover:border-rose-200"
+          className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl cursor-pointer border border-transparent hover:border-rose-200 transition-all duration-200 ease-out hover:scale-110 active:scale-90"
           title="Delete Land Pass (Opens confirmation warning)"
         >
           <Trash2 className="w-4 h-4" />

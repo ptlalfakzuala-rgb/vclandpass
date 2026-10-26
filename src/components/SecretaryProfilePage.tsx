@@ -471,10 +471,10 @@ export const SecretaryProfilePage: React.FC<SecretaryProfilePageProps> = ({
             <button
               type="button"
               onClick={onNavigateToVillage}
-              className="px-4 py-2 bg-white hover:bg-neutral-100 text-neutral-800 border border-neutral-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+              className="px-4 py-2 bg-white hover:bg-neutral-100 text-neutral-800 border border-neutral-300 rounded-xl text-xs font-bold transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 flex items-center gap-1.5 shadow-sm cursor-pointer group"
             >
               <span>Manage Village Council Profile</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
             </button>
           </div>
 
@@ -483,7 +483,7 @@ export const SecretaryProfilePage: React.FC<SecretaryProfilePageProps> = ({
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-sm font-bold shadow-md transition disabled:opacity-50 flex items-center gap-2"
+              className="px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? 'Saving Changes...' : 'Save Profile Changes'}</span>

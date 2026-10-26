@@ -1001,14 +1001,15 @@ export default function App() {
 
       {/* Temporary Alert Banner */}
       {notification && (
-        <div className="bg-emerald-950 text-white px-4 py-2 text-center text-xs font-medium flex items-center justify-center gap-2 shadow-inner transition-all print:hidden">
-          <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+        <div className="bg-emerald-700 text-white px-4 py-2.5 text-center text-xs font-semibold flex items-center justify-center gap-2 shadow-sm animate-toast-slide print:hidden z-40">
+          <CheckCircle2 className="w-4 h-4 text-emerald-200 animate-pulse" />
           <span>{notification.message}</span>
         </div>
       )}
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 space-y-6 print:hidden">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 print:hidden">
+        <div key={currentPage} className="animate-page-slide space-y-6">
         {/* VIEW A: DEDICATED SECRETARY PROFILE PAGE */}
         {currentPage === 'secretary_profile' && currentUser && (
           <SecretaryProfilePage
@@ -1066,7 +1067,7 @@ export default function App() {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
+                className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95"
               >
                 <Phone className="w-3.5 h-3.5" />
                 <span>WhatsApp Authority (7005504074)</span>
@@ -1078,7 +1079,7 @@ export default function App() {
                 )}&body=${encodeURIComponent(
                   `Hello Authority,\n\nI have registered as VC Secretary with Username: ${currentUser.username || currentUser.displayName}.\nPlease review my ₹299 payment proof and approve my account.\n\nThank you.`
                 )}`}
-                className="px-3.5 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
+                className="px-3.5 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95"
               >
                 <Mail className="w-3.5 h-3.5" />
                 <span>Email Authority</span>
@@ -1123,7 +1124,7 @@ export default function App() {
                 <img
                   src={currentVillage.logoUrl}
                   alt={`${currentVillage.villageName} Logo`}
-                  className="w-14 h-14 object-contain rounded-xl border border-neutral-200 p-0.5 bg-white shadow-2xs"
+                  className="w-14 h-14 object-contain rounded-xl border border-neutral-200 p-0.5 bg-white shadow-2xs transition-transform duration-200 hover:scale-105"
                 />
               ) : (
                 <div className="w-14 h-14 bg-emerald-950 text-white rounded-xl flex flex-col items-center justify-center p-1 font-serif font-black shadow-2xs">
@@ -1149,12 +1150,12 @@ export default function App() {
           {/* Quick Metrics & Actions */}
           <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-center gap-3 shrink-0">
             <div className="grid grid-cols-3 gap-2 w-full sm:w-auto">
-              <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200 text-center min-w-[70px]">
+              <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200 text-center min-w-[70px] transition-transform duration-200 hover:scale-105">
                 <span className="text-[11px] text-neutral-500 font-medium block">Total</span>
                 <span className="text-xl font-black font-mono text-neutral-900">{perspectivePasses.length}</span>
               </div>
 
-              <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-center min-w-[80px]">
+              <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-center min-w-[80px] transition-transform duration-200 hover:scale-105">
                 <div className="flex items-center justify-center gap-1 text-emerald-800 text-[11px] font-bold">
                   <TreePine className="w-3 h-3" />
                   <span>HR</span>
@@ -1162,7 +1163,7 @@ export default function App() {
                 <span className="text-xl font-black font-mono text-emerald-950">{huanRamCount}</span>
               </div>
 
-              <div className="bg-blue-50 p-3 rounded-xl border border-blue-200 text-center min-w-[80px]">
+              <div className="bg-blue-50 p-3 rounded-xl border border-blue-200 text-center min-w-[80px] transition-transform duration-200 hover:scale-105">
                 <div className="flex items-center justify-center gap-1 text-blue-800 text-[11px] font-bold">
                   <Home className="w-3 h-3" />
                   <span>IH</span>
@@ -1177,10 +1178,10 @@ export default function App() {
                   setIsMandatoryProfileUpdate(false);
                   setIsVillageProfileOpen(true);
                 }}
-                className="w-full sm:w-auto px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition border border-neutral-300"
+                className="w-full sm:w-auto px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 border border-neutral-300 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs active:translate-y-0 active:scale-95 group"
                 title="Configure Village Name, Block, District, Terms & Logo (Starts Blank)"
               >
-                <Settings className="w-3.5 h-3.5 text-neutral-600" />
+                <Settings className="w-3.5 h-3.5 text-neutral-600 transition-transform duration-200 group-hover:rotate-45" />
                 <span>Configure Village Profile</span>
               </button>
             )}
@@ -1209,7 +1210,7 @@ export default function App() {
                 setIsMandatoryProfileUpdate(true);
                 setIsVillageProfileOpen(true);
               }}
-              className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition shrink-0"
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 shrink-0"
             >
               <Settings className="w-4 h-4" />
               <span>Configure Village Profile Now</span>
@@ -1258,7 +1259,7 @@ export default function App() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-medium text-neutral-700 focus:ring-2 focus:ring-emerald-500"
+              className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-medium text-neutral-700 focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
               <option value="date_desc">Latest Issued</option>
               <option value="date_asc">Oldest Issued</option>
@@ -1268,7 +1269,7 @@ export default function App() {
 
             <button
               onClick={handleExportArchive}
-              className="px-3 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-medium flex items-center gap-1.5 transition border border-neutral-200"
+              className="px-3 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-medium flex items-center gap-1.5 border border-neutral-200 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs active:translate-y-0 active:scale-95"
               title="Export database archive"
             >
               <Download className="w-3.5 h-3.5" />
@@ -1282,9 +1283,9 @@ export default function App() {
                   setEditingPass(null);
                   setIsAddEditOpen(true);
                 }}
-                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 group"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
                 <span>+ Issue Pass</span>
               </button>
             ) : !isVillageConfigured && isApproved ? (
@@ -1293,7 +1294,7 @@ export default function App() {
                   setIsMandatoryProfileUpdate(true);
                   setIsVillageProfileOpen(true);
                 }}
-                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition"
+                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95"
                 title="Configure Village Council Profile first to unlock and make Live New Land Pass Issuance"
               >
                 <Building2 className="w-3.5 h-3.5 text-neutral-950" />
@@ -1337,9 +1338,9 @@ export default function App() {
                   setEditingPass(null);
                   setIsAddEditOpen(true);
                 }}
-                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-sm"
+                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 group"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" />
                 <span>Issue First Land Pass</span>
               </button>
             )}
@@ -1355,7 +1356,7 @@ export default function App() {
                       setIsMandatoryProfileUpdate(true);
                       setIsVillageProfileOpen(true);
                     }}
-                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition shadow-xs"
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95"
                   >
                     Configure Village Profile Now
                   </button>
@@ -1388,6 +1389,7 @@ export default function App() {
         )}
           </>
         )}
+        </div>
       </main>
 
       {/* Official State Footer */}

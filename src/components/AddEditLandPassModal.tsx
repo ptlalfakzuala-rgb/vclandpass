@@ -193,12 +193,12 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs overflow-y-auto">
-        <div className="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-neutral-200 overflow-hidden flex flex-col my-auto max-h-[95vh]">
+      <div className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs overflow-y-auto animate-backdrop-fade">
+        <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-neutral-200 overflow-hidden flex flex-col my-auto max-h-[95vh] animate-modal-pop">
           {/* Header */}
           <div className="px-6 py-4 bg-emerald-900 text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-800 rounded-lg">
+              <div className="p-2 bg-emerald-800 rounded-xl shadow-inner">
                 <FileCheck2 className="w-5 h-5 text-emerald-300" />
               </div>
               <div>
@@ -212,7 +212,7 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-1 rounded-full text-emerald-200 hover:text-white hover:bg-emerald-800 transition"
+              className="p-1.5 rounded-full text-emerald-200 hover:text-white hover:bg-emerald-800 transition-all duration-200 hover:rotate-90 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -599,13 +599,13 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg transition"
+                  className="px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-xl transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium rounded-lg transition shadow-md flex items-center gap-1.5"
+                  className="px-6 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium rounded-xl shadow-md transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-95 flex items-center gap-1.5 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
                   {editingPass ? 'Update Land Pass' : 'Save & Open Printable View'}

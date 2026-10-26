@@ -219,8 +219,8 @@ export const VerifyPassModal: React.FC<VerifyPassModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-xs">
-        <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-neutral-200 overflow-hidden flex flex-col">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-xs animate-backdrop-fade">
+        <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-neutral-200 overflow-hidden flex flex-col animate-modal-pop">
           {/* Header */}
           <div className="px-6 py-4 bg-emerald-950 text-white flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -236,7 +236,7 @@ export const VerifyPassModal: React.FC<VerifyPassModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-emerald-900 transition cursor-pointer"
+              className="p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-emerald-900 transition-all duration-200 hover:rotate-90 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -248,16 +248,16 @@ export const VerifyPassModal: React.FC<VerifyPassModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsCameraDialogOpen(true)}
-                className="flex-1 py-3 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                className="flex-1 py-3 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 flex items-center justify-center gap-2 shadow-sm cursor-pointer group"
               >
-                <Camera className="w-4 h-4 text-amber-300" />
+                <Camera className="w-4 h-4 text-amber-300 transition-transform duration-200 group-hover:scale-110" />
                 <span>Scan QR with Camera</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="py-3 px-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl text-xs font-semibold transition border border-neutral-300 flex items-center gap-1.5 cursor-pointer"
+                className="py-3 px-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl text-xs font-semibold transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95 border border-neutral-300 flex items-center gap-1.5 cursor-pointer"
                 title="Upload image containing QR Code"
               >
                 <Upload className="w-4 h-4 text-neutral-600" />
@@ -379,8 +379,8 @@ export const VerifyPassModal: React.FC<VerifyPassModalProps> = ({
       {/* DIALOGUE BOX FOR CAMERA FUNCTION IN QR SCANNER                 */}
       {/* ============================================================== */}
       {isCameraDialogOpen && (
-        <div className="fixed inset-0 z-60 bg-black/85 flex items-center justify-center p-3 sm:p-6 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-neutral-900 rounded-3xl max-w-md w-full overflow-hidden border border-neutral-700 shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-60 bg-black/85 flex items-center justify-center p-3 sm:p-6 backdrop-blur-sm animate-backdrop-fade">
+          <div className="bg-neutral-900 rounded-3xl max-w-md w-full overflow-hidden border border-neutral-700 shadow-2xl flex flex-col animate-modal-pop">
             {/* Camera Dialogue Header */}
             <div className="px-5 py-4 bg-neutral-950 border-b border-neutral-800 flex items-center justify-between text-white">
               <div className="flex items-center gap-2.5">
@@ -412,13 +412,15 @@ export const VerifyPassModal: React.FC<VerifyPassModalProps> = ({
                 />
                 <canvas ref={canvasRef} className="hidden" />
 
-                {/* Animated Scanner Frame Overlay */}
+                {/* Animated Scanner Frame Overlay with Sweeping Laser Line */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="w-48 h-48 border-2 border-emerald-400/90 rounded-2xl relative animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.35)]">
+                  <div className="w-48 h-48 border-2 border-emerald-400/90 rounded-2xl relative shadow-[0_0_20px_rgba(16,185,129,0.35)] overflow-hidden">
                     <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-emerald-300"></div>
                     <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-emerald-300"></div>
                     <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-emerald-300"></div>
                     <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-emerald-300"></div>
+                    {/* Sweeping Laser Line */}
+                    <div className="absolute left-1 right-1 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] animate-scanner-laser"></div>
                   </div>
                 </div>
 

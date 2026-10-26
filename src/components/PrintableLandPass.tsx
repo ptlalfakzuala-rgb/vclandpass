@@ -252,7 +252,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
   };
 
   return (
-    <div className="printable-land-pass-modal fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-xs flex justify-center p-2 sm:p-6 print:p-0 print:bg-white print:static print:inset-auto">
+    <div className="printable-land-pass-modal fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-xs flex justify-center p-2 sm:p-6 print:p-0 print:bg-white print:static print:inset-auto animate-backdrop-fade">
       {/* Hidden file input for emblem logo */}
       <input
         ref={emblemInputRef}
@@ -262,13 +262,13 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
         className="hidden"
       />
 
-      <div className="printable-land-pass-wrapper w-full max-w-4xl flex flex-col items-center">
+      <div className="printable-land-pass-wrapper w-full max-w-4xl flex flex-col items-center animate-modal-pop">
         {/* ============================================================== */}
         {/* TOP CONTROL BAR (HIDDEN IN PRINT)                             */}
         {/* ============================================================== */}
         <div className="w-full bg-neutral-900 border border-neutral-700 rounded-2xl p-3 sm:p-4 mb-4 flex flex-col lg:flex-row items-center justify-between gap-3 shadow-xl print:hidden text-white">
           <div className="flex items-center gap-3 w-full lg:w-auto">
-            <div className="p-2 bg-emerald-900/80 rounded-xl text-emerald-400">
+            <div className="p-2 bg-emerald-900/80 rounded-xl text-emerald-400 shadow-inner">
               <FileText className="w-5 h-5" />
             </div>
             <div>
@@ -291,7 +291,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
               <button
                 type="button"
                 onClick={() => setPrintScope('both')}
-                className={`px-2.5 py-1 rounded-lg transition ${
+                className={`px-2.5 py-1 rounded-lg cursor-pointer transition-all duration-200 ease-out active:scale-95 ${
                   printScope === 'both'
                     ? 'bg-emerald-700 text-white shadow-xs'
                     : 'text-neutral-300 hover:text-white'
@@ -303,7 +303,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
               <button
                 type="button"
                 onClick={() => setPrintScope('page1')}
-                className={`px-2.5 py-1 rounded-lg transition ${
+                className={`px-2.5 py-1 rounded-lg cursor-pointer transition-all duration-200 ease-out active:scale-95 ${
                   printScope === 'page1'
                     ? 'bg-emerald-700 text-white shadow-xs'
                     : 'text-neutral-300 hover:text-white'
@@ -324,7 +324,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
                 placeholder="Enter President Name"
                 value={presidentName}
                 onChange={(e) => handlePresidentNameChange(e.target.value)}
-                className="bg-neutral-900 border border-neutral-600 rounded-lg px-2 py-0.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-32 sm:w-40 font-semibold"
+                className="bg-neutral-900 border border-neutral-600 rounded-lg px-2 py-0.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-32 sm:w-40 font-semibold transition"
                 title="Input President Name for signature line"
               />
             </div>
@@ -332,7 +332,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
             {/* Change Emblem Logo button */}
             <button
               onClick={() => emblemInputRef.current?.click()}
-              className="px-2.5 py-1.5 bg-emerald-900 hover:bg-emerald-800 text-emerald-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-emerald-700"
+              className="px-2.5 py-1.5 bg-emerald-900 hover:bg-emerald-800 text-emerald-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-emerald-700 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
               title="Upload / Change official Emblem Logo for print/save view"
             >
               <Camera className="w-3.5 h-3.5 text-emerald-400" />
@@ -342,7 +342,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
             {emblemLogoUrl && (
               <button
                 onClick={handleRemoveEmblem}
-                className="p-1.5 bg-neutral-800 hover:bg-rose-900 text-neutral-400 hover:text-rose-200 rounded-xl transition border border-neutral-700"
+                className="p-1.5 bg-neutral-800 hover:bg-rose-900 text-neutral-400 hover:text-rose-200 rounded-xl border border-neutral-700 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
                 title="Reset to default official state emblem"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -352,7 +352,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
             {onOpenSettings && (
               <button
                 onClick={onOpenSettings}
-                className="px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-xl text-xs font-medium flex items-center gap-1 transition border border-neutral-700"
+                className="px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-xl text-xs font-medium flex items-center gap-1 border border-neutral-700 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
                 title="Customize Themes & Fonts"
               >
                 <Sliders className="w-3.5 h-3.5" />
@@ -362,26 +362,26 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
 
             <button
               onClick={handleShare}
-              className="px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-xl text-xs font-medium flex items-center gap-1 transition border border-neutral-700"
+              className="px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-xl text-xs font-medium flex items-center gap-1 border border-neutral-700 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
               title="Copy verification link"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 scale-110" /> : <Share2 className="w-3.5 h-3.5" />}
               <span className="hidden sm:inline">{copied ? 'Copied' : 'Share'}</span>
             </button>
 
             <button
               onClick={handlePrint}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 group"
               title="Print / Save PDF (A4 Portrait - Prints only this certificate)"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
               <span>Print / Save PDF (A4)</span>
             </button>
 
             {onDelete && (
               <button
                 onClick={() => onDelete(pass)}
-                className="px-2.5 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-rose-800 shadow-xs"
+                className="px-2.5 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-rose-800 shadow-xs cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
                 title="Delete this Land Pass (Opens warning dialogue box)"
               >
                 <Trash2 className="w-3.5 h-3.5 text-rose-400" />
@@ -391,7 +391,7 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
 
             <button
               onClick={onClose}
-              className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-xl transition"
+              className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-xl transition-all duration-200 hover:rotate-90 cursor-pointer"
               title="Close Preview"
             >
               <X className="w-5 h-5" />
