@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserProfile, LandPass } from '../types';
+import { UserProfile, LandPass, AuditLog } from '../types';
 import {
   X,
   ShieldAlert,
@@ -22,9 +22,18 @@ import {
   RefreshCw,
   KeyRound,
   Copy,
-  Trash2
+  Trash2,
+  History,
+  Download,
+  Filter,
+  FilePlus2,
+  FileEdit,
+  Printer,
+  QrCode,
+  UserCheck
 } from 'lucide-react';
 import { DeleteUserModal } from './DeleteUserModal';
+import { fetchAuditLogs } from '../services/auditLogger';
 
 interface FullAuthorityModalProps {
   isOpen: boolean;
@@ -33,7 +42,6 @@ interface FullAuthorityModalProps {
   passes?: LandPass[];
   onApproveUser: (uid: string) => Promise<void> | void;
   onRejectUser: (uid: string, reason?: string) => Promise<void> | void;
-  onApprovePass?: (passId: string) => Promise<void> | void;
   onDeleteUser?: (user: UserProfile) => Promise<void> | void;
   onExitAuthorityMode?: () => void;
   onTransferToRTDB?: () => Promise<void> | void;
@@ -43,15 +51,13 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
   isOpen,
   onClose,
   users,
-  passes = [],
   onApproveUser,
   onRejectUser,
-  onApprovePass,
   onDeleteUser,
   onExitAuthorityMode,
   onTransferToRTDB,
 }) => {
-  const [activeTab, setActiveTab] = useState<'users' | 'passes'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'audit'>('users');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; title: string } | null>(null);
@@ -62,9 +68,13 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
 
   // Local optimistic state for instant UI reaction
   const [localUsers, setLocalUsers] = useState<UserProfile[]>(users);
-  const [localPasses, setLocalPasses] = useState<LandPass[]>(passes);
   const [processingUid, setProcessingUid] = useState<string | null>(null);
-  const [processingPassId, setProcessingPassId] = useState<string | null>(null);
+
+  // Audit Logs State (Exclusive to Full Authority Mode)
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [loadingAudit, setLoadingAudit] = useState<boolean>(false);
+  const [auditSearchTerm, setAuditSearchTerm] = useState<string>('');
+  const [auditActionFilter, setAuditActionFilter] = useState<string>('ALL');
 
   const handleCopyKey = (uid: string, key: string) => {
     if (!key) return;
@@ -93,8 +103,22 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
   }, [users]);
 
   useEffect(() => {
-    setLocalPasses(passes);
-  }, [passes]);
+    if (isOpen && activeTab === 'audit') {
+      loadAuditLogs();
+    }
+  }, [isOpen, activeTab]);
+
+  const loadAuditLogs = async () => {
+    setLoadingAudit(true);
+    try {
+      const data = await fetchAuditLogs();
+      setAuditLogs(data);
+    } catch (e) {
+      console.warn('Failed to load audit logs:', e);
+    } finally {
+      setLoadingAudit(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -113,8 +137,6 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
   const pendingCount = localUsers.filter((u) => u.status === 'pending').length;
   const approvedCount = localUsers.filter((u) => u.status === 'approved').length;
   const rejectedCount = localUsers.filter((u) => u.status === 'rejected').length;
-
-  const pendingPassesCount = localPasses.filter((p) => p.approvalStatus === 'pending_approval').length;
 
   const handleApproveUserClick = async (uid: string) => {
     setProcessingUid(uid);
@@ -176,30 +198,88 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
     }
   };
 
-  const handleApprovePassClick = async (passId: string) => {
-    setProcessingPassId(passId);
-    setLocalPasses((prev) =>
-      prev.map((p) =>
-        p.id === passId
-          ? {
-              ...p,
-              approvalStatus: 'live',
-              approvedAt: new Date().toISOString(),
-              approvedBy: 'Full Authority',
-            }
-          : p
-      )
-    );
+  // Audit filter and export
+  const filteredAuditLogs = auditLogs.filter((log) => {
+    const term = auditSearchTerm.toLowerCase();
+    const matchesSearch =
+      log.targetName.toLowerCase().includes(term) ||
+      log.performedBy.toLowerCase().includes(term) ||
+      log.details.toLowerCase().includes(term) ||
+      log.action.toLowerCase().includes(term);
 
-    try {
-      if (onApprovePass) {
-        await onApprovePass(passId);
-      }
-    } catch (err) {
-      console.error('Failed to approve pass:', err);
-    } finally {
-      setProcessingPassId(null);
+    const matchesAction = auditActionFilter === 'ALL' || log.action === auditActionFilter;
+    return matchesSearch && matchesAction;
+  });
+
+  const getActionBadge = (action: AuditLog['action']) => {
+    switch (action) {
+      case 'CREATE_PASS':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+            <FilePlus2 className="w-3 h-3" /> Pass Created
+          </span>
+        );
+      case 'UPDATE_PASS':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800">
+            <FileEdit className="w-3 h-3" /> Pass Updated
+          </span>
+        );
+      case 'DELETE_PASS':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-rose-100 text-rose-800">
+            <Trash2 className="w-3 h-3" /> Pass Deleted
+          </span>
+        );
+      case 'PRINT_PASS':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800">
+            <Printer className="w-3 h-3" /> Pass Printed/PDF
+          </span>
+        );
+      case 'QR_VERIFIED':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-teal-100 text-teal-800">
+            <QrCode className="w-3 h-3" /> QR Verified
+          </span>
+        );
+      case 'ROLE_CHANGE':
+      case 'USER_REGISTRATION_APPROVED':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800">
+            <UserCheck className="w-3 h-3" /> User Approved
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-800">
+            {action.replace(/_/g, ' ')}
+          </span>
+        );
     }
+  };
+
+  const handleExportCSV = () => {
+    if (auditLogs.length === 0) return;
+    const headers = ['Timestamp', 'Action', 'Target ID', 'Target Name', 'Performed By', 'Details'];
+    const rows = auditLogs.map((l) => [
+      `"${l.timestamp}"`,
+      `"${l.action}"`,
+      `"${l.targetId}"`,
+      `"${l.targetName}"`,
+      `"${l.performedBy}"`,
+      `"${l.details.replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent =
+      'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `VC_Council_Audit_Trail_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -207,7 +287,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-xs overflow-y-auto">
         <div className="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-neutral-300 overflow-hidden flex flex-col max-h-[92vh]">
           {/* Header */}
-          <div className="px-6 py-4 bg-linear-to-r from-amber-950 via-neutral-900 to-amber-950 text-white flex items-center justify-between border-b border-amber-900/60">
+          <div className="px-6 py-4 bg-gradient-to-r from-amber-950 via-neutral-900 to-amber-950 text-white flex items-center justify-between border-b border-amber-900/60 shrink-0">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-amber-600 rounded-xl shadow-md text-amber-950">
                 <ShieldCheck className="w-6 h-6 text-white" />
@@ -222,7 +302,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                   </span>
                 </div>
                 <p className="text-xs text-amber-200/80">
-                  Review &amp; approve VC Secretary accounts (lifetime live) and new Land Passes
+                  Review &amp; approve VC Secretary accounts (credentials &amp; secret keys) &bull; View tamper-evident audit trail
                 </p>
               </div>
             </div>
@@ -232,45 +312,45 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                 <button
                   type="button"
                   onClick={onTransferToRTDB}
-                  className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                  className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                   title="Transfer all data to Firebase Realtime Database"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Transfer to RTDB</span>
+                  <span className="hidden sm:inline">Sync RTDB</span>
                 </button>
               )}
               {onExitAuthorityMode && (
                 <button
                   type="button"
                   onClick={onExitAuthorityMode}
-                  className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-xs font-medium transition border border-neutral-700"
+                  className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-xs font-medium transition border border-neutral-700 cursor-pointer"
                 >
-                  Exit Authority Mode
+                  Exit Authority
                 </button>
               )}
               <button
                 onClick={onClose}
-                className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
+                className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          {/* Section Tabs (Users vs Land Passes) */}
-          <div className="bg-neutral-100 px-6 pt-3 border-b border-neutral-200 flex items-center justify-between gap-4">
+          {/* Section Tabs: Secretary Registrations vs Audit Trail */}
+          <div className="bg-neutral-100 px-6 pt-3 border-b border-neutral-200 flex items-center justify-between gap-4 shrink-0">
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setActiveTab('users')}
-                className={`px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-2 border-t border-x ${
+                className={`px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-2 border-t border-x cursor-pointer ${
                   activeTab === 'users'
                     ? 'bg-white text-amber-950 border-neutral-200 shadow-xs'
                     : 'bg-transparent text-neutral-600 hover:text-neutral-900 border-transparent'
                 }`}
               >
                 <User className="w-3.5 h-3.5" />
-                <span>Secretary Registrations</span>
+                <span>Secretary Registrations &amp; Secret Keys</span>
                 {pendingCount > 0 && (
                   <span className="bg-amber-500 text-white font-mono text-[10px] px-1.5 py-0.2 rounded-full">
                     {pendingCount}
@@ -280,33 +360,31 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
 
               <button
                 type="button"
-                onClick={() => setActiveTab('passes')}
-                className={`px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-2 border-t border-x ${
-                  activeTab === 'passes'
+                onClick={() => setActiveTab('audit')}
+                className={`px-4 py-2 text-xs font-bold rounded-t-xl transition flex items-center gap-2 border-t border-x cursor-pointer ${
+                  activeTab === 'audit'
                     ? 'bg-white text-emerald-950 border-neutral-200 shadow-xs'
                     : 'bg-transparent text-neutral-600 hover:text-neutral-900 border-transparent'
                 }`}
               >
-                <FileText className="w-3.5 h-3.5" />
-                <span>Land Passes Live Approval</span>
-                {pendingPassesCount > 0 && (
-                  <span className="bg-amber-500 text-white font-mono text-[10px] px-1.5 py-0.2 rounded-full">
-                    {pendingPassesCount}
-                  </span>
-                )}
+                <History className="w-3.5 h-3.5" />
+                <span>Audit Trail &amp; Activity Logs</span>
+                <span className="bg-emerald-800 text-white font-mono text-[10px] px-1.5 py-0.2 rounded-full">
+                  Full Authority Only
+                </span>
               </button>
             </div>
 
-            <div className="text-[11px] text-neutral-500 pb-2">
-              Authority Contact: <strong>ptlalfakzuala@gmail.com</strong> / <strong>7005504074</strong>
+            <div className="text-[11px] text-neutral-500 pb-2 hidden sm:block">
+              Support: <strong>ptlalfakzuala@gmail.com</strong> / <strong>7005504074</strong>
             </div>
           </div>
 
-          {/* TAB 1: USERS */}
+          {/* TAB 1: USERS & SECRET KEYS */}
           {activeTab === 'users' && (
             <>
               {/* Stats Bar */}
-              <div className="bg-neutral-50 px-6 py-2.5 border-b border-neutral-200 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="bg-neutral-50 px-6 py-2.5 border-b border-neutral-200 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs shrink-0">
                 <div className="bg-white p-2 rounded-xl border border-neutral-200 flex items-center justify-between">
                   <span className="text-neutral-500 font-medium">Total Users:</span>
                   <span className="font-bold font-mono text-neutral-900 text-sm">{localUsers.length}</span>
@@ -332,12 +410,12 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
               </div>
 
               {/* Filter & Search Bar */}
-              <div className="p-4 bg-white border-b border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="p-4 bg-white border-b border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
                 <div className="relative w-full sm:w-72">
                   <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
                   <input
                     type="text"
-                    placeholder="Search user, phone, UTR..."
+                    placeholder="Search user, phone, village, secret key..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-9 pr-3 py-1.5 bg-neutral-50 border border-neutral-300 rounded-lg text-xs focus:ring-2 focus:ring-amber-500 focus:bg-white"
@@ -348,7 +426,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setFilterStatus('all')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                       filterStatus === 'all'
                         ? 'bg-neutral-900 text-white'
                         : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
@@ -359,7 +437,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setFilterStatus('pending')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 cursor-pointer ${
                       filterStatus === 'pending'
                         ? 'bg-amber-600 text-white'
                         : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
@@ -370,7 +448,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setFilterStatus('approved')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 cursor-pointer ${
                       filterStatus === 'approved'
                         ? 'bg-emerald-700 text-white'
                         : 'bg-emerald-100 text-emerald-900 hover:bg-emerald-200'
@@ -381,7 +459,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setFilterStatus('rejected')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 cursor-pointer ${
                       filterStatus === 'rejected'
                         ? 'bg-rose-700 text-white'
                         : 'bg-rose-100 text-rose-900 hover:bg-rose-200'
@@ -393,7 +471,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
               </div>
 
               {/* User Registrations List */}
-              <div className="p-6 overflow-y-auto space-y-4">
+              <div className="p-6 overflow-y-auto space-y-4 flex-1">
                 {filteredUsers.length === 0 ? (
                   <div className="text-center py-12 bg-neutral-50 rounded-2xl border-2 border-dashed border-neutral-200">
                     <ShieldCheck className="w-10 h-10 text-neutral-400 mx-auto mb-2" />
@@ -486,7 +564,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                               <div className="inline-flex items-center gap-2 bg-amber-50 hover:bg-amber-100/70 px-3 py-1.5 rounded-xl border border-amber-300 shadow-2xs transition">
                                 <KeyRound className="w-3.5 h-3.5 text-amber-700 shrink-0" />
                                 <span className="text-[11px] font-bold text-amber-950 uppercase tracking-wide">
-                                  Secret Key:
+                                  User Secret Key:
                                 </span>
                                 <span className="font-mono font-black text-xs text-neutral-950 bg-white px-2.5 py-0.5 rounded-md border border-amber-300 shadow-2xs select-all">
                                   {user.password || user.passkey || 'N/A'}
@@ -536,7 +614,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                                     title: `Payment Proof - ${user.displayName || user.username} (₹${user.paymentAmount || 299})`,
                                   })
                                 }
-                                className="relative group rounded-xl overflow-hidden border-2 border-emerald-600/60 shadow-md hover:border-emerald-700 transition"
+                                className="relative group rounded-xl overflow-hidden border-2 border-emerald-600/60 shadow-md hover:border-emerald-700 transition cursor-pointer"
                                 title="Click to view full payment screenshot"
                               >
                                 <img
@@ -566,7 +644,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                                   type="button"
                                   disabled={isProcessing}
                                   onClick={() => handleApproveUserClick(user.uid)}
-                                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
                                   title="Approve registration and make live for lifetime"
                                 >
                                   {isProcessing ? (
@@ -580,7 +658,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                                   type="button"
                                   disabled={isProcessing}
                                   onClick={() => setRejectingUser(user)}
-                                  className="px-3 py-2 bg-neutral-100 hover:bg-rose-100 text-neutral-700 hover:text-rose-700 rounded-xl text-xs font-semibold transition border border-neutral-200 hover:border-rose-300 disabled:opacity-50"
+                                  className="px-3 py-2 bg-neutral-100 hover:bg-rose-100 text-neutral-700 hover:text-rose-700 rounded-xl text-xs font-semibold transition border border-neutral-200 hover:border-rose-300 disabled:opacity-50 cursor-pointer"
                                 >
                                   Reject
                                 </button>
@@ -601,7 +679,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                                 type="button"
                                 disabled={isProcessing}
                                 onClick={() => handleApproveUserClick(user.uid)}
-                                className="px-3 py-1.5 bg-neutral-100 hover:bg-emerald-50 text-neutral-700 hover:text-emerald-800 rounded-lg text-xs font-medium transition border border-neutral-300 disabled:opacity-50"
+                                className="px-3 py-1.5 bg-neutral-100 hover:bg-emerald-50 text-neutral-700 hover:text-emerald-800 rounded-lg text-xs font-medium transition border border-neutral-300 disabled:opacity-50 cursor-pointer"
                               >
                                 Reconsider / Approve
                               </button>
@@ -628,93 +706,101 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
             </>
           )}
 
-          {/* TAB 2: LAND PASSES APPROVAL */}
-          {activeTab === 'passes' && (
-            <div className="p-6 overflow-y-auto space-y-4">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900 flex items-center justify-between">
-                <div>
-                  <strong>Land Pass Approval Gate:</strong> Passes are not live until approved by Full Authority.
+          {/* TAB 2: AUDIT TRAIL & ACTIVITY LOGS (EXCLUSIVE TO FULL AUTHORITY MODE) */}
+          {activeTab === 'audit' && (
+            <div className="flex flex-col flex-1 overflow-hidden">
+              {/* Filter and Export controls */}
+              <div className="p-4 bg-neutral-50 border-b border-neutral-200 flex flex-col sm:flex-row gap-3 items-center justify-between shrink-0">
+                <div className="relative w-full sm:w-72">
+                  <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    placeholder="Search audit trail by pass, user, action..."
+                    value={auditSearchTerm}
+                    onChange={(e) => setAuditSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 bg-white border border-neutral-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500"
+                  />
                 </div>
-                <span className="font-mono font-bold text-emerald-950">
-                  {pendingPassesCount} Pending Approval
-                </span>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                  <Filter className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                  <span className="text-xs font-semibold text-neutral-600 shrink-0">Filter:</span>
+                  {['ALL', 'CREATE_PASS', 'UPDATE_PASS', 'DELETE_PASS', 'PRINT_PASS', 'QR_VERIFIED', 'USER_REGISTRATION_APPROVED'].map(
+                    (act) => (
+                      <button
+                        key={act}
+                        onClick={() => setAuditActionFilter(act)}
+                        className={`text-[11px] px-2.5 py-1 rounded-lg font-medium shrink-0 transition cursor-pointer ${
+                          auditActionFilter === act
+                            ? 'bg-emerald-800 text-white'
+                            : 'bg-white border border-neutral-200 text-neutral-700 hover:bg-neutral-100'
+                        }`}
+                      >
+                        {act === 'ALL' ? 'All Events' : act.replace(/_/g, ' ')}
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    onClick={handleExportCSV}
+                    className="ml-2 px-3 py-1.5 text-xs bg-emerald-800 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1.5 transition shrink-0 cursor-pointer"
+                    title="Export Audit Trail to CSV"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Export CSV</span>
+                  </button>
+                </div>
               </div>
 
-              {localPasses.length === 0 ? (
-                <div className="text-center py-12 bg-neutral-50 rounded-2xl border-2 border-dashed border-neutral-200">
-                  <FileText className="w-10 h-10 text-neutral-400 mx-auto mb-2" />
-                  <h4 className="font-bold text-neutral-700 text-sm">No Land Passes issued yet</h4>
-                </div>
-              ) : (
-                localPasses.map((pass) => {
-                  const isLive = pass.approvalStatus === 'live' || !pass.approvalStatus;
-                  const isProcessing = processingPassId === pass.id;
-
-                  return (
+              {/* Log Entries List */}
+              <div className="p-6 overflow-y-auto space-y-3 flex-1">
+                {loadingAudit ? (
+                  <div className="py-12 text-center text-neutral-500 text-sm flex items-center justify-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin text-emerald-600" />
+                    <span>Loading Council Audit Logs...</span>
+                  </div>
+                ) : filteredAuditLogs.length === 0 ? (
+                  <div className="py-12 text-center text-neutral-400 text-sm bg-neutral-50 rounded-2xl border border-dashed border-neutral-200">
+                    <History className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
+                    <p>No audit records found matching your filter.</p>
+                  </div>
+                ) : (
+                  filteredAuditLogs.map((log) => (
                     <div
-                      key={pass.id}
-                      className={`p-4 rounded-xl border transition shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
-                        isLive
-                          ? 'bg-white border-neutral-200'
-                          : 'bg-amber-50/70 border-amber-300'
-                      }`}
+                      key={log.id}
+                      className="p-3.5 bg-white border border-neutral-200 rounded-xl hover:border-neutral-300 transition shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                     >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-neutral-900 text-sm bg-neutral-100 px-2.5 py-0.5 rounded-lg border border-neutral-200">
-                            {pass.passNumber}
-                          </span>
-                          <span className="text-xs font-bold text-neutral-800">
-                            {pass.ownerName}
-                          </span>
-                          <span className="text-[10px] uppercase font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
-                            {pass.passType === 'huan_ram' ? 'Huan Ram' : 'In Hmun'}
-                          </span>
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {getActionBadge(log.action)}
+                          <span className="font-bold text-neutral-900">{log.targetName}</span>
+                          <span className="text-neutral-400">•</span>
+                          <span className="text-neutral-600 font-mono text-[11px]">By {log.performedBy}</span>
                         </div>
-                        <div className="text-xs text-neutral-500 flex items-center gap-3">
-                          <span>Council: <strong>{pass.villageName || 'Mizoram VC'}</strong></span>
-                          <span>Issue Date: {pass.issueDate}</span>
-                          <span>Area: {pass.areaSize}</span>
-                        </div>
+                        <p className="text-neutral-700">{log.details}</p>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        {isLive ? (
-                          <span className="px-3 py-1 bg-emerald-100 text-emerald-900 text-xs font-bold rounded-full flex items-center gap-1 border border-emerald-300">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                            <span>LIVE FOR LIFETIME</span>
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={isProcessing}
-                            onClick={() => handleApprovePassClick(pass.id)}
-                            className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm disabled:opacity-50"
-                          >
-                            {isProcessing ? (
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <Sparkles className="w-3.5 h-3.5" />
-                            )}
-                            <span>{isProcessing ? 'Approving...' : 'Approve & Make Live'}</span>
-                          </button>
-                        )}
+                      <div className="text-right shrink-0 text-neutral-500 font-mono text-[11px]">
+                        {new Date(log.timestamp).toLocaleString('en-IN', {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        })}
                       </div>
                     </div>
-                  );
-                })
-              )}
+                  ))
+                )}
+              </div>
             </div>
           )}
 
           {/* Footer */}
-          <div className="px-6 py-3 bg-neutral-50 border-t border-neutral-200 flex justify-between items-center text-xs text-neutral-500">
+          <div className="px-6 py-3 bg-neutral-50 border-t border-neutral-200 flex justify-between items-center text-xs text-neutral-500 shrink-0">
             <span>
-              Full Authority actions are verified and permanently recorded in the council audit log and Firestore.
+              Full Authority actions are verified and permanently recorded in the council audit log.
             </span>
             <button
               onClick={onClose}
-              className="px-4 py-1.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 font-medium rounded-lg transition"
+              className="px-4 py-1.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 font-medium rounded-lg transition cursor-pointer"
             >
               Done
             </button>
@@ -730,7 +816,7 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
               <span className="font-semibold text-sm truncate">{selectedPhoto.title}</span>
               <button
                 onClick={() => setSelectedPhoto(null)}
-                className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
+                className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -783,13 +869,13 @@ export const FullAuthorityModal: React.FC<FullAuthorityModalProps> = ({
                   setRejectingUser(null);
                   setRejectionReason('');
                 }}
-                className="px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100 rounded-lg transition"
+                className="px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded-lg text-xs font-bold transition shadow-xs"
+                className="px-4 py-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer"
               >
                 Confirm Rejection
               </button>

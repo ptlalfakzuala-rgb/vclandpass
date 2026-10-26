@@ -401,7 +401,7 @@ export const PhpStorageModal: React.FC<PhpStorageModalProps> = ({
                   <div className="p-3 flex items-center justify-between hover:bg-neutral-50">
                     <div className="space-y-0.5">
                       <strong className="font-mono text-emerald-900">style.css</strong>
-                      <p className="text-neutral-500 text-[11px]">Pure CSS3 styling with official Mizoram Government palette and @media print A4 certificate styles</p>
+                      <p className="text-neutral-500 text-[11px]">Pure CSS3 styling with official Mizoram Village Council palette and @media print A4 certificate styles</p>
                     </div>
                     <span className="text-[10px] bg-neutral-100 text-neutral-800 px-2 py-0.5 rounded font-mono font-bold">CSS3</span>
                   </div>

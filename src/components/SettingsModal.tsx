@@ -51,7 +51,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     },
     {
       id: 'modern_government',
-      title: 'Modern Government',
+      title: 'Modern Official',
       subtitle: 'Charcoal & slate high-contrast minimalism',
       previewBg: 'bg-neutral-900 text-white',
       borderCol: 'border-neutral-700',
@@ -75,7 +75,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     {
       id: 'sans',
       title: 'Clean Modern Sans',
-      subtitle: 'Sharp modern government clarity',
+      subtitle: 'Sharp modern executive clarity',
       fontClass: 'font-sans',
     },
     {

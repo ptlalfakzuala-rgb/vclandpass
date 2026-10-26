@@ -950,10 +950,8 @@ export default function App() {
           isOpen={isFullAuthorityModalOpen}
           onClose={() => setIsFullAuthorityModalOpen(false)}
           users={usersList}
-          passes={passes}
           onApproveUser={handleApproveUser}
           onRejectUser={handleRejectUser}
-          onApprovePass={handleApprovePass}
           onDeleteUser={handleDeleteUser}
           onExitAuthorityMode={handleExitAuthorityMode}
         />
@@ -1504,10 +1502,8 @@ export default function App() {
         isOpen={isFullAuthorityModalOpen}
         onClose={() => setIsFullAuthorityModalOpen(false)}
         users={usersList}
-        passes={passes}
         onApproveUser={handleApproveUser}
         onRejectUser={handleRejectUser}
-        onApprovePass={handleApprovePass}
         onDeleteUser={handleDeleteUser}
         onExitAuthorityMode={handleExitAuthorityMode}
         onTransferToRTDB={handleTransferToRTDB}

@@ -16,6 +16,7 @@ import {
   Upload,
   CheckCircle2,
   AlertCircle,
+  X,
   Copy,
   Check,
   Send,
@@ -84,6 +85,7 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
 
   // Public QR Scanner State
   const [scanMode, setScanMode] = useState<'camera' | 'manual' | 'upload'>('camera');
+  const [isCameraDialogOpen, setIsCameraDialogOpen] = useState<boolean>(false);
   const [cameraActive, setCameraActive] = useState<boolean>(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [manualPassInput, setManualPassInput] = useState<string>('');
@@ -275,9 +277,9 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
     }
   };
 
-  // Camera QR Scanner Loop
+  // Camera QR Scanner Loop (Controlled via Dialogue Box)
   useEffect(() => {
-    if (activeTab !== 'verify' || scanMode !== 'camera') {
+    if (!isCameraDialogOpen) {
       stopCamera();
       return;
     }
@@ -287,7 +289,7 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
     return () => {
       stopCamera();
     };
-  }, [activeTab, scanMode]);
+  }, [isCameraDialogOpen]);
 
   const startCamera = async () => {
     setCameraError(null);
@@ -305,13 +307,13 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.setAttribute('playsinline', 'true');
-        videoRef.current.play();
+        await videoRef.current.play();
         setCameraActive(true);
         requestAnimationFrame(scanVideoFrame);
       }
     } catch (err: any) {
       console.warn('Camera access error:', err);
-      setCameraError('Camera access unavailable. You can use image upload or enter Pass Number manually.');
+      setCameraError('Camera access unavailable. Please grant permission or enter Pass Number manually.');
       setCameraActive(false);
     }
   };
@@ -358,6 +360,7 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
   // QR Code Found
   const handleQrCodeFound = (decodedText: string) => {
     stopCamera();
+    setIsCameraDialogOpen(false);
     let passNumberToSearch = decodedText.trim();
     if (decodedText.includes('verify=')) {
       try {
@@ -423,8 +426,10 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
         found.id,
         found.passNumber,
         'Public User',
-        `Pass ${found.passNumber} verified via public camera QR scanner`
+        `Pass ${found.passNumber} verified via public camera QR scanner. Opened default Print/Save A4 view mode.`
       );
+      // Immediately open default Print/Save A4 view mode with no extra functionality
+      onViewPass(found);
     }
   };
 
@@ -448,7 +453,7 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
             </div>
             <div>
               <div className="text-[10px] font-mono tracking-widest uppercase text-emerald-400 font-bold">
-                Government of Mizoram
+                Mizoram Village Council Registry
               </div>
               <h1 className="text-lg sm:text-xl font-serif font-black tracking-wide text-white uppercase">
                 VILLAGE COUNCIL, MIZORAM
@@ -1013,20 +1018,23 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
             <div className="flex bg-neutral-900 p-1 rounded-xl border border-neutral-700">
               <button
                 type="button"
-                onClick={() => setScanMode('camera')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
-                  scanMode === 'camera' ? 'bg-emerald-700 text-white' : 'text-neutral-400'
+                onClick={() => {
+                  setScanMode('camera');
+                  setIsCameraDialogOpen(true);
+                }}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                  scanMode === 'camera' ? 'bg-emerald-700 text-white shadow-xs' : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                <Camera className="w-3.5 h-3.5" />
-                <span>Live Camera</span>
+                <Camera className="w-3.5 h-3.5 text-amber-300" />
+                <span>Camera Scanner</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setScanMode('upload')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
-                  scanMode === 'upload' ? 'bg-emerald-700 text-white' : 'text-neutral-400'
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                  scanMode === 'upload' ? 'bg-emerald-700 text-white shadow-xs' : 'text-neutral-400 hover:text-white'
                 }`}
               >
                 <Upload className="w-3.5 h-3.5" />
@@ -1036,8 +1044,8 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
               <button
                 type="button"
                 onClick={() => setScanMode('manual')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
-                  scanMode === 'manual' ? 'bg-emerald-700 text-white' : 'text-neutral-400'
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                  scanMode === 'manual' ? 'bg-emerald-700 text-white shadow-xs' : 'text-neutral-400 hover:text-white'
                 }`}
               >
                 <Search className="w-3.5 h-3.5" />
@@ -1045,36 +1053,26 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
               </button>
             </div>
 
-            {cameraError && (
-              <div className="p-3 bg-amber-950/60 border border-amber-700 rounded-xl text-xs text-amber-200">
-                {cameraError}
-              </div>
-            )}
-
-            {/* Live Camera Scanner View */}
+            {/* Camera Prompt Trigger */}
             {scanMode === 'camera' && (
-              <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-600/50 bg-black aspect-video flex items-center justify-center">
-                <video
-                  ref={videoRef}
-                  className="w-full h-full object-cover"
-                  playsInline
-                  muted
-                />
-                <canvas ref={canvasRef} className="hidden" />
-
-                {/* Target Overlay Scanner Frame */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="w-52 h-52 border-2 border-emerald-400 rounded-2xl relative animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                    <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-emerald-300"></div>
-                    <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-emerald-300"></div>
-                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-emerald-300"></div>
-                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-emerald-300"></div>
-                  </div>
+              <div className="bg-neutral-900/80 p-5 rounded-2xl border border-neutral-700 text-center space-y-3">
+                <div className="w-12 h-12 bg-emerald-950 border border-emerald-600/40 rounded-full mx-auto flex items-center justify-center text-emerald-400 shadow-inner">
+                  <Camera className="w-6 h-6 text-amber-300" />
                 </div>
-
-                <div className="absolute bottom-2 text-center text-[10px] text-white/80 bg-black/60 px-3 py-1 rounded-full font-mono">
-                  Point camera at the QR code on the Land Pass
+                <div>
+                  <h4 className="text-sm font-bold text-white">Live Camera QR Scanner</h4>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    Opens a dedicated camera viewfinder dialogue box to scan the certificate QR code
+                  </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setIsCameraDialogOpen(true)}
+                  className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 mx-auto shadow-md cursor-pointer"
+                >
+                  <Camera className="w-4 h-4 text-amber-300" />
+                  <span>Open Camera Dialogue Box</span>
+                </button>
               </div>
             )}
 
@@ -1095,7 +1093,7 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                 <button
                   type="button"
                   onClick={() => qrImageInputRef.current?.click()}
-                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
                 >
                   Choose Image File
                 </button>
@@ -1117,80 +1115,41 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                 </div>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition shadow-md"
+                  className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition shadow-md cursor-pointer"
                 >
                   Verify
                 </button>
               </form>
             )}
 
-            {/* Verification Result Display */}
+            {/* Verification Result: Clean default Print/Save A4 view mode trigger only, no administrative clutter */}
             {verifySearched && (
               <div className="pt-2">
                 {verifiedPass ? (
-                  <div className="bg-emerald-950/70 border-2 border-emerald-500 rounded-2xl p-5 space-y-4 shadow-xl">
-                    <div className="flex items-center justify-between border-b border-emerald-800 pb-2.5">
-                      <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-6 h-6 text-emerald-400" />
-                        <div>
-                          <span className="text-xs font-bold uppercase tracking-wider text-emerald-200 block">
-                            Officially Verified Land Pass
-                          </span>
-                          <span className="text-[11px] text-emerald-400 font-mono">
-                            {verifiedPass.passNumber}
-                          </span>
-                        </div>
-                      </div>
-
-                      <span
-                        className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase font-mono ${
-                          verifiedPass.approvalStatus === 'live' || !verifiedPass.approvalStatus
-                            ? 'bg-emerald-500 text-neutral-950'
-                            : 'bg-amber-400 text-neutral-950'
-                        }`}
-                      >
-                        {verifiedPass.approvalStatus === 'live' || !verifiedPass.approvalStatus
-                          ? 'LIVE & APPROVED'
-                          : 'PENDING APPROVAL'}
+                  <div className="bg-emerald-950/70 border-2 border-emerald-500 rounded-2xl p-5 space-y-3 shadow-xl text-center">
+                    <div className="w-12 h-12 bg-emerald-900 rounded-full flex items-center justify-center mx-auto text-emerald-300">
+                      <ShieldCheck className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-300 block">
+                        Verified Authentic Land Pass
                       </span>
+                      <strong className="text-base font-mono text-white block mt-0.5">
+                        {verifiedPass.passNumber}
+                      </strong>
+                      <p className="text-xs text-neutral-300 mt-1">
+                        Owner: <strong>{verifiedPass.ownerName}</strong> &bull; {verifiedPass.passType === 'huan_ram' ? 'Huan Ram' : 'In Hmun'} &bull; {verifiedPass.villageName || 'Mizoram VC'}
+                      </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <span className="text-neutral-400 block text-[10px]">Owner:</span>
-                        <strong className="text-white text-sm">{verifiedPass.ownerName}</strong>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400 block text-[10px]">Parent:</span>
-                        <span className="text-neutral-200">{verifiedPass.parentName || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400 block text-[10px]">Type:</span>
-                        <span className="text-emerald-300 font-semibold uppercase">
-                          {verifiedPass.passType === 'huan_ram' ? 'Huan Ram (Garden)' : 'In Hmun (House)'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-neutral-400 block text-[10px]">Issue Date:</span>
-                        <span className="font-mono text-neutral-200">{verifiedPass.issueDate}</span>
-                      </div>
-                      <div className="col-span-2">
-                        <span className="text-neutral-400 block text-[10px]">Village Council:</span>
-                        <span className="text-neutral-200 font-medium">
-                          {verifiedPass.villageName || 'Mizoram Village Council'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 flex justify-end">
-                      <button
-                        onClick={() => onViewPass(verifiedPass)}
-                        className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>View Official Certificate (Print View)</span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onViewPass(verifiedPass)}
+                      className="w-full py-3 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>Open Default Print / Save A4 View Mode</span>
+                    </button>
                   </div>
                 ) : (
                   <div className="bg-rose-950/60 border border-rose-800 rounded-2xl p-4 text-center space-y-1">
@@ -1214,14 +1173,25 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
         {activeTab === 'about' && (
           <div className="bg-neutral-800/95 rounded-3xl border border-neutral-700/80 p-6 sm:p-10 shadow-2xl max-w-3xl mx-auto w-full backdrop-blur-md text-white space-y-6">
             <div className="text-center space-y-1 pb-4 border-b border-neutral-700">
-              <div className="w-12 h-12 bg-emerald-950 border border-emerald-600/40 rounded-2xl mx-auto flex items-center justify-center text-emerald-400 mb-3 shadow-inner">
+              <div className="w-12 h-12 bg-emerald-950 border border-emerald-600/40 rounded-2xl mx-auto flex items-center justify-center text-amber-300 mb-3 shadow-inner">
                 <BookOpen className="w-6 h-6" />
               </div>
               <h2 className="text-xl sm:text-2xl font-serif font-black text-white">
-                Mizoram Village Council Land Pass System Chungchang
+                Mizoram Village Council Land Pass App Chungchang
               </h2>
               <p className="text-xs text-neutral-400">
-                Chipchiar taka hrilhfiahna &bull; Mizo Tawngin
+                Village Council Huan Ram leh In Hmun Pass Digital Enkawlna &bull; Chipchiar Taka Hrilhfiahna
+              </p>
+            </div>
+
+            {/* Sorkar Thuchhuah A Ni Lo Tih Fiahna (Mandatory Disclaimer) */}
+            <div className="p-4 sm:p-5 bg-amber-950/70 rounded-2xl border-2 border-amber-500/80 space-y-2">
+              <div className="flex items-center gap-2.5 text-amber-300 font-black text-sm">
+                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+                <span>HRIATTIRNA PAWIMAWH : Sorkar Thuchhuah / Sorkar App A Ni Lo</span>
+              </div>
+              <p className="text-xs text-amber-100/90 leading-relaxed font-medium">
+                He application hi <strong>Mizoram Sorkar</strong> siam emaw tihchhuah a ni lo va (not government-issued). Mizoram chhunga Village Council hrang hrang ten mahni khua leh bial chhunga Huan Ram leh In Hmun pass buaipui awlsam zawk nan, ramri fel zawk nan, leh record kumhluna him taka an vawn theih nana <strong>independent digital software</strong> a siam a ni.
               </p>
             </div>
 
@@ -1229,10 +1199,10 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
               <div className="p-4 bg-emerald-950/60 border border-emerald-800 rounded-2xl space-y-2">
                 <h3 className="font-bold text-emerald-200 text-sm flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>A Tlangpui Thlirna (Overview)</span>
+                  <span>A Bulpui &amp; Tum Tlangpui (Overview &amp; Purpose)</span>
                 </h3>
                 <p>
-                  He application hi <strong>Mizoram Village Council (V/C)</strong> te tana bika siam, <strong>Huan Ram leh In Hmun Land Pass</strong> felfai, rintlak leh changkang taka enkawl, chhuah, leh chhinchhiahna (Electronic Land Registry System) a ni. Hmanlai lehkha bu thil hlui, chhia leh boral thei laka fihlimin, khawtlang rorelna leh ram pek chungchang rintlak leh zahawm taka digital hmanga vawn thatna hmanrua a ni.
+                  He application hi <strong>Mizoram Village Council (V/C)</strong> te tana bika buatsaih, <strong>Huan Ram leh In Hmun Land Pass</strong> felfai, rintlak leh changkang taka enkawl, chhuah, leh chhinchhiahna (Digital Land Registry System) a ni. Hmanlai lehkha bu hlui, chhia leh boral thei laka fihlimin, khawtlang rorelna leh ram pek chungchang rintlak leh zahawm taka digital hmanga kumhlun vawn thatna hmanrua a ni.
                 </p>
               </div>
 
@@ -1240,21 +1210,21 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                 <div className="p-3.5 bg-neutral-900/80 rounded-xl border border-neutral-700 space-y-1">
                   <span className="font-bold text-emerald-300 text-xs sm:text-sm block">1. Huan Ram &amp; In Hmun Pass</span>
                   <p className="text-xs text-neutral-400">
-                    Huan ram leh In hmun pass duhtawka thlan theih a ni a, pass number hi computer-in indawt thlapin (auto-sequential) a pe zel.
+                    Huan ram leh In hmun pass duhtawka thlan theih a ni a, pass number hi computer-in indawt thlapin (auto-sequential) a pe zel a, pass number in-ang a awm thei lo.
                   </p>
                 </div>
 
                 <div className="p-3.5 bg-neutral-900/80 rounded-xl border border-neutral-700 space-y-1">
                   <span className="font-bold text-emerald-300 text-xs sm:text-sm block">2. Google Maps &amp; Move Tool</span>
                   <p className="text-xs text-neutral-400">
-                    Satellite, Terrain leh Roadmap hmangin ramri kil zawn tak zawnah Move Tool (D-pad &amp; Drag) hmangin GPS coordinates a la thei.
+                    Satellite, Terrain leh Roadmap hmangin ramri kil zawn tak zawnah Move Tool (D-pad &amp; Drag) hmangin GPS coordinates a la thei a, phone dinna GPS la nghal theih a ni.
                   </p>
                 </div>
 
                 <div className="p-3.5 bg-neutral-900/80 rounded-xl border border-neutral-700 space-y-1">
                   <span className="font-bold text-emerald-300 text-xs sm:text-sm block">3. Official A4 Certificate Print</span>
                   <p className="text-xs text-neutral-400">
-                    Website thil dang lang lovin, Council Logo, State Emblem, QR Code, 2x2 Boundary Grid, leh President Seal space nen A4-ah a print/save theih.
+                    Website thil dang lang lovin, Council Logo, State Emblem, QR Code, 2x2 Boundary Grid, leh President Seal space nen A4 paper-ah mawi takin a print/save theih.
                   </p>
                 </div>
 
@@ -1270,15 +1240,94 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                 <span className="font-bold text-white text-xs uppercase tracking-wider block">
                   Mizoram Khawtlang Tana A Hlawkna
                 </span>
-                <ul className="space-y-1 text-xs text-neutral-300 list-disc list-inside">
+                <ul className="space-y-1.5 text-xs text-neutral-300 list-disc list-inside">
                   <li>Village Council term a inthlak pawhin khaw ram pass record a bo ngai tawh lo.</li>
                   <li>GPS Coordinates leh Ramri Grid felfai tak avangin ramri innek buaina a veng.</li>
                   <li>Khawtual mipuite tan bank leh sawrkar hmaa zahawm taka phawrh ngam pass a ni.</li>
+                  <li>Secretary in-register thar te tan One-time Lifetime Fee ₹299 chauh a ni.</li>
                 </ul>
               </div>
 
-              <div className="pt-2 text-center text-xs text-neutral-400">
-                Direct Authority Support: <strong>ptlalfakzuala@gmail.com</strong> &bull; WhatsApp: <strong>7005504074</strong>
+              <div className="pt-2 text-center text-xs text-neutral-400 bg-neutral-900/60 p-3 rounded-xl border border-neutral-800">
+                Direct Authority &amp; Developer Support: <strong>ptlalfakzuala@gmail.com</strong> &bull; WhatsApp/Phone: <strong>+91 7005504074</strong>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* DIALOGUE BOX FOR CAMERA FUNCTION IN QR SCANNER */}
+        {isCameraDialogOpen && (
+          <div className="fixed inset-0 z-60 bg-black/85 flex items-center justify-center p-3 sm:p-6 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-neutral-900 rounded-3xl max-w-md w-full overflow-hidden border border-neutral-700 shadow-2xl flex flex-col">
+              {/* Header */}
+              <div className="px-5 py-4 bg-neutral-950 border-b border-neutral-800 flex items-center justify-between text-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-emerald-950 border border-emerald-600/40 rounded-xl text-emerald-400">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-white">Scan Land Pass QR Code</h3>
+                    <p className="text-[11px] text-emerald-400 font-mono">Live Camera Viewfinder</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsCameraDialogOpen(false)}
+                  className="p-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Viewfinder Frame */}
+              <div className="p-5 space-y-4">
+                <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500/60 bg-black aspect-video flex items-center justify-center shadow-inner">
+                  <video
+                    ref={videoRef}
+                    className="w-full h-full object-cover"
+                    playsInline
+                    muted
+                  />
+                  <canvas ref={canvasRef} className="hidden" />
+
+                  {/* Animated Scanner Frame Overlay */}
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    <div className="w-48 h-48 border-2 border-emerald-400/90 rounded-2xl relative animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.35)]">
+                      <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-emerald-300"></div>
+                      <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-emerald-300"></div>
+                      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-emerald-300"></div>
+                      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-emerald-300"></div>
+                    </div>
+                  </div>
+
+                  <div className="absolute bottom-2 text-center text-[10px] text-white/90 bg-black/70 px-3 py-1 rounded-full font-mono">
+                    Point camera at the QR code on the Land Pass
+                  </div>
+                </div>
+
+                {cameraError ? (
+                  <div className="p-3 bg-rose-950/80 border border-rose-700 rounded-xl text-xs text-rose-200 text-center">
+                    {cameraError}
+                  </div>
+                ) : (
+                  <p className="text-xs text-neutral-300 text-center leading-relaxed">
+                    Hold your device camera steady and place the QR code within the frame to verify authenticity.
+                  </p>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 py-3 bg-neutral-950 border-t border-neutral-800 flex items-center justify-between">
+                <span className="text-[11px] text-neutral-400">
+                  Auto-detects authentic Pass
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsCameraDialogOpen(false)}
+                  className="px-4 py-1.5 text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-semibold rounded-xl transition cursor-pointer"
+                >
+                  Cancel / Close
+                </button>
               </div>
             </div>
           </div>
@@ -1288,7 +1337,7 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
       {/* Official State Footer */}
       <footer className="relative z-10 border-t border-neutral-800 bg-neutral-950/80 px-4 py-4 text-center text-xs text-neutral-500">
         <p>
-          Government of Mizoram &bull; Village Council Land Registry System &bull; Direct Authority Support: ptlalfakzuala@gmail.com / WhatsApp: +91 7005504074
+          Mizoram Village Council Land Pass System &bull; Independent Digital Registry for Village Councils &bull; Direct Support: ptlalfakzuala@gmail.com / WhatsApp: +91 7005504074
         </p>
       </footer>
     </div>

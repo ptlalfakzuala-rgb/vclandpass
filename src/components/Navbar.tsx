@@ -362,14 +362,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {isAdmin && (
               <>
-                <button
-                  onClick={onOpenAuditLog}
-                  className="px-2.5 py-1 text-xs text-emerald-200 hover:text-white hover:bg-emerald-900 rounded-lg transition flex items-center gap-1 border border-emerald-900"
-                  title="View Audit Logs"
-                >
-                  <History className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="hidden sm:inline">Audit Trail</span>
-                </button>
+                {/* Audit Trail: Restricted to Full Authority Mode Only */}
+                {isFullAuthority && (
+                  <button
+                    onClick={onOpenAuditLog}
+                    className="px-2.5 py-1 text-xs text-amber-300 hover:text-white bg-amber-950/60 hover:bg-amber-900 rounded-lg transition flex items-center gap-1 border border-amber-800/80"
+                    title="View Audit Logs (Full Authority Exclusive)"
+                  >
+                    <History className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="hidden sm:inline">Audit Trail</span>
+                  </button>
+                )}
 
 
                 {/* Village Configuration & Authority Gate */}

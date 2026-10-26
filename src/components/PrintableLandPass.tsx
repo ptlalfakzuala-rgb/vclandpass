@@ -64,7 +64,7 @@ export const PrintableLandPass: React.FC<PrintableLandPassProps> = ({
 
 const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
 
-  // Emblem Logo state (Default: Official LAD Government of Mizoram Emblem)
+  // Emblem Logo state (Default: Village Council Emblem)
   const [emblemLogoUrl, setEmblemLogoUrl] = useState<string>(
     village.emblemLogoUrl || DEFAULT_LAD_EMBLEM_URL
   );
