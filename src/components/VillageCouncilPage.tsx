@@ -243,14 +243,14 @@ export const VillageCouncilPage: React.FC<VillageCouncilPageProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={onNavigateToSecretaryProfile}
-            className="px-4 py-2 bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-300 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-300 rounded-xl text-xs font-bold transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <User className="w-3.5 h-3.5 text-emerald-700" />
             <span>Secretary Profile</span>
           </button>
           <button
             onClick={onNavigateToPasses}
-            className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <FileText className="w-3.5 h-3.5" />
             <span>Land Records Registry</span>
@@ -667,7 +667,7 @@ export const VillageCouncilPage: React.FC<VillageCouncilPageProps> = ({
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-sm font-bold shadow-md transition disabled:opacity-50 flex items-center gap-2"
+              className="px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-sm font-bold shadow-md transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? 'Saving Council Profile...' : 'Save Village Council Profile'}</span>
