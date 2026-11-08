@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LandPass, PassType, VillageConfig } from '../types';
 import { getNextPassNumber } from '../services/offlineSync';
 import { MapPickerModal } from './MapPickerModal';
+import { DocumentScannerModal } from './DocumentScannerModal';
+import { ViewNocModal } from './ViewNocModal';
 import {
   X,
   MapPin,
@@ -12,6 +14,9 @@ import {
   FileCheck2,
   Trash2,
   Lock,
+  Printer,
+  Eye,
+  RefreshCw,
 } from 'lucide-react';
 
 interface AddEditLandPassModalProps {
@@ -52,6 +57,8 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
   const [notes, setNotes] = useState<string>('');
 
   const [isMapModalOpen, setIsMapModalOpen] = useState<boolean>(false);
+  const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
+  const [isViewNocOpen, setIsViewNocOpen] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -485,13 +492,18 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
               </div>
             </div>
 
-            {/* Step 5: Photo Picker for NOC Document */}
-            <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200">
-              <label className="text-xs font-bold uppercase tracking-wider text-amber-900 block mb-1">
-                5. NOC Document Attachment (Photo Picker)
-              </label>
-              <p className="text-xs text-amber-700 mb-3">
-                Upload scanned copy or photo of the Village Council No Objection Certificate (NOC)
+            {/* Step 5: NOC Document Attachment with Scan Command & Upload */}
+            <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200">
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-amber-950 block">
+                  5. NOC Document Attachment (Scan / Photo Upload)
+                </label>
+                <span className="text-[10px] bg-amber-200 text-amber-950 font-bold px-2 py-0.5 rounded-full">
+                  Village Council NOC
+                </span>
+              </div>
+              <p className="text-xs text-amber-800 mb-3">
+                Attach Village Council No Objection Certificate (NOC) by scanning directly from connected printer/scanner or uploading a scanned file.
               </p>
 
               <input
@@ -503,45 +515,99 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
               />
 
               {nocDocumentUrl ? (
-                <div className="flex items-center gap-4 bg-white p-3 rounded-lg border border-amber-300">
-                  <img
-                    src={nocDocumentUrl}
-                    alt="NOC Document Preview"
-                    className="w-20 h-20 object-cover rounded-md border border-neutral-200 shrink-0"
-                  />
-                  <div className="flex-1 overflow-hidden">
-                    <span className="text-xs font-bold text-neutral-800 block truncate">
-                      {nocDocumentName || 'Attached NOC Document'}
-                    </span>
-                    <span className="text-[11px] text-emerald-700 font-medium block">
-                      ✓ Ready for document archival
-                    </span>
+                <div className="bg-white p-3.5 rounded-xl border-2 border-amber-300 shadow-2xs space-y-3">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={nocDocumentUrl}
+                      alt="NOC Document Preview"
+                      className="w-16 h-16 object-cover rounded-lg border border-neutral-200 shrink-0 bg-neutral-100"
+                    />
+                    <div className="flex-1 overflow-hidden">
+                      <span className="text-xs font-bold text-neutral-900 block truncate">
+                        {nocDocumentName || 'Attached NOC Document'}
+                      </span>
+                      <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1 mt-0.5">
+                        <FileCheck2 className="w-3.5 h-3.5" />
+                        NOC Document Attached &amp; Verified
+                      </span>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleClearNoc}
-                    className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                    title="Remove NOC Document"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-neutral-100">
+                    <button
+                      type="button"
+                      onClick={() => setIsViewNocOpen(true)}
+                      className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-amber-300 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-transform active:scale-95 shadow-2xs"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>View Full NOC</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsScannerOpen(true)}
+                      className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-transform active:scale-95"
+                    >
+                      <Printer className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>Rescan from Printer</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleClearNoc}
+                      className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition ml-auto cursor-pointer"
+                      title="Remove NOC Document"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full border-2 border-dashed border-amber-300 hover:border-amber-400 bg-white/70 hover:bg-white p-4 rounded-xl flex flex-col items-center justify-center gap-1.5 transition text-neutral-600"
-                >
-                  <div className="p-2 bg-amber-100 rounded-full text-amber-700">
-                    <Upload className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs font-semibold text-neutral-800">
-                    Click to select NOC Document photo / scan
-                  </span>
-                  <span className="text-[11px] text-neutral-500">
-                    Supports JPG, PNG (Max 2MB)
-                  </span>
-                </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Option 1: Direct Scan from Printer / Scanner */}
+                  <button
+                    type="button"
+                    onClick={() => setIsScannerOpen(true)}
+                    className="p-4 rounded-xl border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50/50 hover:from-emerald-100 hover:to-teal-100 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="p-2 bg-emerald-700 text-white rounded-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <Printer className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full uppercase">
+                        Scan Command
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold text-neutral-900 block">
+                      Scan from Printer / Scanner
+                    </span>
+                    <span className="text-[11px] text-neutral-600 block mt-0.5">
+                      Direct scan via flatbed optical platen, ADF feeder, or connected camera
+                    </span>
+                  </button>
+
+                  {/* Option 2: Upload File / Photo */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-4 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="p-2 bg-neutral-100 text-neutral-700 rounded-lg group-hover:scale-110 transition-transform">
+                        <Upload className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] bg-neutral-200 text-neutral-700 font-medium px-2 py-0.5 rounded-full">
+                        File Upload
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold text-neutral-900 block">
+                      Upload Scanned File
+                    </span>
+                    <span className="text-[11px] text-neutral-500 block mt-0.5">
+                      Select JPG, PNG, or PDF file from your device (Max 2MB)
+                    </span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -630,6 +696,31 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
           }
         }}
       />
+
+      {/* Document Scanner Modal */}
+      <DocumentScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        villageName={village.villageName}
+        defaultOwnerName={ownerName}
+        onScanComplete={(dataUrl, fileName) => {
+          setNocDocumentUrl(dataUrl);
+          setNocDocumentName(fileName);
+        }}
+      />
+
+      {/* NOC Document Full Preview Modal */}
+      {nocDocumentUrl && (
+        <ViewNocModal
+          isOpen={isViewNocOpen}
+          onClose={() => setIsViewNocOpen(false)}
+          passNumber={passNumber || 'NEW-PASS'}
+          ownerName={ownerName || 'Dil Tu'}
+          nocDocumentUrl={nocDocumentUrl}
+          nocDocumentName={nocDocumentName}
+          villageName={village.villageName}
+        />
+      )}
     </>
   );
 };

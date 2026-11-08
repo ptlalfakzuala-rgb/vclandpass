@@ -48,12 +48,18 @@ export const VillageProfileModal: React.FC<VillageProfileModalProps> = ({
   const [pinCode, setPinCode] = useState<string>('');
   const [huanRamPrefix, setHuanRamPrefix] = useState<string>('');
   const [inHmunPrefix, setInHmunPrefix] = useState<string>('');
+  const [familyIdPrefix, setFamilyIdPrefix] = useState<string>('');
+  const [taxInvoicePrefix, setTaxInvoicePrefix] = useState<string>('');
   const [logoUrl, setLogoUrl] = useState<string>('');
   const [conditionsAndTerms, setConditionsAndTerms] = useState<string>('');
   const [presidentName, setPresidentName] = useState<string>('');
   const [startingPassNumber, setStartingPassNumber] = useState<number | string>(1001);
   const [startingHuanRamNumber, setStartingHuanRamNumber] = useState<number | string>(1001);
   const [startingInHmunNumber, setStartingInHmunNumber] = useState<number | string>(1001);
+  const [startingFamilyNumber, setStartingFamilyNumber] = useState<number | string>(1);
+  const [startingTaxInvoiceNumber, setStartingTaxInvoiceNumber] = useState<number | string>(1);
+  const [defaultPropertyTaxRate, setDefaultPropertyTaxRate] = useState<number | string>(150);
+  const [defaultSanitationFee, setDefaultSanitationFee] = useState<number | string>(50);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,12 +74,18 @@ export const VillageProfileModal: React.FC<VillageProfileModalProps> = ({
       setPinCode(village.pinCode || '');
       setHuanRamPrefix(village.huanRamPrefix || '');
       setInHmunPrefix(village.inHmunPrefix || '');
+      setFamilyIdPrefix(village.familyIdPrefix || '');
+      setTaxInvoicePrefix(village.taxInvoicePrefix || '');
       setLogoUrl(village.logoUrl || '');
       setConditionsAndTerms(village.conditionsAndTerms || '');
       setPresidentName(village.presidentName || '');
       setStartingPassNumber(village.startingPassNumber || 1001);
       setStartingHuanRamNumber(village.startingHuanRamNumber || village.startingPassNumber || 1001);
       setStartingInHmunNumber(village.startingInHmunNumber || village.startingPassNumber || 1001);
+      setStartingFamilyNumber(village.startingFamilyNumber || 1);
+      setStartingTaxInvoiceNumber(village.startingTaxInvoiceNumber || 1);
+      setDefaultPropertyTaxRate(village.defaultPropertyTaxRate ?? 150);
+      setDefaultSanitationFee(village.defaultSanitationFee ?? 50);
     } else {
       setVillageName('');
       setBlockName('');
@@ -82,12 +94,18 @@ export const VillageProfileModal: React.FC<VillageProfileModalProps> = ({
       setPinCode('');
       setHuanRamPrefix('');
       setInHmunPrefix('');
+      setFamilyIdPrefix('');
+      setTaxInvoicePrefix('');
       setLogoUrl('');
       setConditionsAndTerms('');
       setPresidentName('');
       setStartingPassNumber(1001);
       setStartingHuanRamNumber(1001);
       setStartingInHmunNumber(1001);
+      setStartingFamilyNumber(1);
+      setStartingTaxInvoiceNumber(1);
+      setDefaultPropertyTaxRate(150);
+      setDefaultSanitationFee(50);
     }
     setErrors({});
   }, [village, isOpen]);
@@ -159,6 +177,18 @@ export const VillageProfileModal: React.FC<VillageProfileModalProps> = ({
     const parsedStartHR = parseInt(String(startingHuanRamNumber), 10) || 1001;
     const parsedStartIH = parseInt(String(startingInHmunNumber), 10) || 1001;
     const parsedStartGeneral = parseInt(String(startingPassNumber), 10) || 1001;
+    const parsedStartFamily = parseInt(String(startingFamilyNumber), 10) || 1;
+    const parsedStartTax = parseInt(String(startingTaxInvoiceNumber), 10) || 1;
+    const parsedRate = parseFloat(String(defaultPropertyTaxRate)) || 150;
+    const parsedSanitation = parseFloat(String(defaultSanitationFee)) || 50;
+
+    const cleanFamPrefix = familyIdPrefix.trim()
+      ? (familyIdPrefix.trim().endsWith('-') || familyIdPrefix.trim().endsWith('/') ? familyIdPrefix.trim() : `${familyIdPrefix.trim()}-`)
+      : 'VC-FAM-';
+
+    const cleanTaxPrefix = taxInvoicePrefix.trim()
+      ? (taxInvoicePrefix.trim().endsWith('-') || taxInvoicePrefix.trim().endsWith('/') ? taxInvoicePrefix.trim() : `${taxInvoicePrefix.trim()}-`)
+      : 'PTMS-VC-';
 
     const updatedConfig: VillageConfig = {
       ...village,
@@ -169,9 +199,15 @@ export const VillageProfileModal: React.FC<VillageProfileModalProps> = ({
       pinCode: pinCode.trim(),
       huanRamPrefix: huanRamPrefix.trim().endsWith('-') || huanRamPrefix.trim().endsWith('/') ? huanRamPrefix.trim() : `${huanRamPrefix.trim()}-`,
       inHmunPrefix: inHmunPrefix.trim().endsWith('-') || inHmunPrefix.trim().endsWith('/') ? inHmunPrefix.trim() : `${inHmunPrefix.trim()}-`,
+      familyIdPrefix: cleanFamPrefix,
+      taxInvoicePrefix: cleanTaxPrefix,
       startingPassNumber: parsedStartGeneral,
       startingHuanRamNumber: parsedStartHR,
       startingInHmunNumber: parsedStartIH,
+      startingFamilyNumber: parsedStartFamily,
+      startingTaxInvoiceNumber: parsedStartTax,
+      defaultPropertyTaxRate: parsedRate,
+      defaultSanitationFee: parsedSanitation,
       logoUrl: logoUrl.trim(),
       conditionsAndTerms: conditionsAndTerms.trim(),
       presidentName: presidentName.trim() || 'President',
@@ -185,7 +221,7 @@ export const VillageProfileModal: React.FC<VillageProfileModalProps> = ({
       village.id,
       villageName,
       currentUserDisplayName || 'Council Secretary',
-      `Configured official Village Council profile for ${updatedConfig.villageName} with starting numbers (HR: ${parsedStartHR}, IH: ${parsedStartIH}), prefixes (${updatedConfig.huanRamPrefix}, ${updatedConfig.inHmunPrefix}), and custom bylaws.`
+      `Configured official Village Council profile for ${updatedConfig.villageName} with Land Pass prefixes, Family ID prefix (${cleanFamPrefix}), and PTMS Tax settings.`
     );
 
     onSave(updatedConfig);
@@ -449,6 +485,112 @@ export const VillageProfileModal: React.FC<VillageProfileModalProps> = ({
                   <strong className="text-blue-700 font-bold">
                     {inHmunPrefix ? `${inHmunPrefix}${startingInHmunNumber || 1001}` : `VC/IH/${startingInHmunNumber || 1001}`}
                   </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Family ID & PTMS Configuration Cards */}
+            <div className="mt-4 pt-3 border-t border-neutral-200">
+              <label className="text-xs font-bold uppercase tracking-wider text-neutral-800 block mb-2">
+                Property Tax &amp; Family ID Settings (PTMS)
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Family ID Settings */}
+                <div className="bg-white p-3.5 rounded-xl border border-purple-100 shadow-xs space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-purple-950">Family ID (Household)</span>
+                    <span className="text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-md">Prefix + Serial</span>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-neutral-700 block mb-1">
+                      Family ID Prefix
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. SPH-FAM- or VC-FAM-"
+                      value={familyIdPrefix}
+                      onChange={(e) => setFamilyIdPrefix(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-neutral-50 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-xs font-mono font-bold text-purple-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-neutral-700 block mb-1">
+                      Starting Family ID Serial Number
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      placeholder="e.g. 1 or 1001"
+                      value={startingFamilyNumber}
+                      onChange={(e) => setStartingFamilyNumber(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-neutral-50 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-xs font-mono font-bold text-purple-900"
+                    />
+                  </div>
+
+                  <div className="bg-purple-50/80 p-2 rounded-lg text-[11px] text-purple-900 font-mono flex items-center justify-between">
+                    <span>First Family ID:</span>
+                    <strong className="text-purple-700 font-bold">
+                      {familyIdPrefix ? `${familyIdPrefix}${String(startingFamilyNumber || 1).padStart(4, '0')}` : `VC-FAM-${String(startingFamilyNumber || 1).padStart(4, '0')}`}
+                    </strong>
+                  </div>
+                </div>
+
+                {/* PTMS Tax Invoice & Rates Settings */}
+                <div className="bg-white p-3.5 rounded-xl border border-amber-100 shadow-xs space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-950">Tax Invoice &amp; Rates (PTMS)</span>
+                    <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-md">Base Rates</span>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-neutral-700 block mb-1">
+                      Tax Invoice Prefix
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. PTMS-SPH- or PTMS-VC-"
+                      value={taxInvoicePrefix}
+                      onChange={(e) => setTaxInvoicePrefix(e.target.value)}
+                      className="w-full px-3 py-1.5 bg-neutral-50 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-xs font-mono font-bold text-amber-900"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[11px] font-semibold text-neutral-700 block mb-1">
+                        Base Tax (₹/yr)
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={defaultPropertyTaxRate}
+                        onChange={(e) => setDefaultPropertyTaxRate(e.target.value)}
+                        className="w-full px-2 py-1.5 bg-neutral-50 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-xs font-mono font-bold text-amber-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-neutral-700 block mb-1">
+                        Sanitation Fee (₹)
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={defaultSanitationFee}
+                        onChange={(e) => setDefaultSanitationFee(e.target.value)}
+                        className="w-full px-2 py-1.5 bg-neutral-50 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-xs font-mono font-bold text-amber-900"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50/80 p-2 rounded-lg text-[11px] text-amber-900 font-mono flex items-center justify-between">
+                    <span>Default Assessment:</span>
+                    <strong className="text-amber-700 font-bold">
+                      ₹{(Number(defaultPropertyTaxRate) || 0) + (Number(defaultSanitationFee) || 0)} / yr
+                    </strong>
+                  </div>
                 </div>
               </div>
             </div>

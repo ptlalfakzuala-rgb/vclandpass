@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LandPass } from '../types';
 import {
   Printer,
@@ -12,8 +12,11 @@ import {
   User,
   ShieldCheck,
   CloudCheck,
-  CloudOff
+  CloudOff,
+  Eye,
+  FileText
 } from 'lucide-react';
+import { ViewNocModal } from './ViewNocModal';
 
 interface LandPassCardProps {
   pass: LandPass;
@@ -33,6 +36,7 @@ export const LandPassCard: React.FC<LandPassCardProps> = ({
   onVerify,
 }) => {
   const isHuanRam = pass.passType === 'huan_ram';
+  const [isViewNocOpen, setIsViewNocOpen] = useState<boolean>(false);
 
   return (
     <div className="bg-white rounded-2xl border border-neutral-200/90 shadow-xs hover:shadow-xl hover:border-emerald-300 transition-all duration-300 ease-out hover:-translate-y-1 overflow-hidden flex flex-col justify-between group">
@@ -144,10 +148,16 @@ export const LandPassCard: React.FC<LandPassCardProps> = ({
           </span>
 
           {pass.nocDocumentUrl ? (
-            <span className="flex items-center gap-1 text-[11px] text-emerald-700 font-medium">
-              <FileCheck className="w-3.5 h-3.5" />
-              NOC Attached
-            </span>
+            <button
+              type="button"
+              onClick={() => setIsViewNocOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[11px] font-bold transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shadow-2xs group/noc"
+              title="Click to view attached official NOC Document"
+            >
+              <FileCheck className="w-3.5 h-3.5 text-emerald-700" />
+              <span>Show NOC</span>
+              <Eye className="w-3 h-3 text-amber-700 ml-0.5 group-hover/noc:translate-x-0.5 transition-transform" />
+            </button>
           ) : (
             <span className="text-[11px] text-neutral-400 italic">No NOC Attached</span>
           )}
@@ -164,6 +174,16 @@ export const LandPassCard: React.FC<LandPassCardProps> = ({
           <Printer className="w-3.5 h-3.5 transition-transform duration-200 group-hover/btn:scale-110" />
           <span>Print / PDF (A4)</span>
         </button>
+
+        {pass.nocDocumentUrl && (
+          <button
+            onClick={() => setIsViewNocOpen(true)}
+            className="p-2 text-amber-800 hover:text-amber-950 hover:bg-amber-100 bg-amber-50 rounded-xl cursor-pointer border border-amber-300 transition-all duration-200 ease-out hover:scale-110 active:scale-90"
+            title="Show Attached NOC Document"
+          >
+            <FileText className="w-4 h-4 text-amber-800" />
+          </button>
+        )}
 
         <button
           onClick={() => onVerify(pass)}
@@ -189,6 +209,17 @@ export const LandPassCard: React.FC<LandPassCardProps> = ({
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
+
+      {/* NOC Document Viewer Modal */}
+      <ViewNocModal
+        isOpen={isViewNocOpen}
+        onClose={() => setIsViewNocOpen(false)}
+        passNumber={pass.passNumber}
+        ownerName={pass.ownerName}
+        nocDocumentUrl={pass.nocDocumentUrl || ''}
+        nocDocumentName={pass.nocDocumentName}
+        villageName={pass.villageName}
+      />
     </div>
   );
 };

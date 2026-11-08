@@ -20,6 +20,7 @@ import { saveVillageConfig } from '../services/villageService';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { cleanForFirestore } from '../services/userService';
+import { ViewNocModal } from './ViewNocModal';
 
 interface PrintableLandPassProps {
   pass: LandPass;
@@ -55,6 +56,7 @@ export const PrintableLandPass: React.FC<PrintableLandPassProps> = ({
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
   const [printScope, setPrintScope] = useState<'both' | 'page1'>('both');
+  const [isViewNocOpen, setIsViewNocOpen] = useState<boolean>(false);
 
   // Editable President Name for signature
   const [presidentName, setPresidentName] = useState<string>(
@@ -369,6 +371,18 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
               <span className="hidden sm:inline">{copied ? 'Copied' : 'Share'}</span>
             </button>
 
+            {pass.nocDocumentUrl && (
+              <button
+                type="button"
+                onClick={() => setIsViewNocOpen(true)}
+                className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                title="View / Show Attached NOC Document"
+              >
+                <FileText className="w-3.5 h-3.5 text-neutral-950" />
+                <span>Show NOC</span>
+              </button>
+            )}
+
             <button
               onClick={handlePrint}
               className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95 group"
@@ -624,9 +638,18 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
                       <span className="text-amber-900 font-medium">{pass.nocDocumentName || 'Council NOC verified'}</span>
                     </div>
                   </div>
-                  <span className="bg-amber-200 text-amber-950 font-bold px-2 py-0.5 rounded-full text-[10px]">
-                    Verified
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="bg-amber-200 text-amber-950 font-bold px-2 py-0.5 rounded-full text-[10px]">
+                      Verified
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsViewNocOpen(true)}
+                      className="print:hidden px-2.5 py-0.5 bg-amber-700 hover:bg-amber-800 text-white rounded-md text-[10px] font-bold cursor-pointer transition-transform active:scale-95 shadow-2xs"
+                    >
+                      Show NOC
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -853,6 +876,17 @@ const DEFAULT_LAD_EMBLEM_URL = '/assets/aistudio/images__3__109dbb99.jpg';
           </button>
         </div>
       </div>
+
+      {/* NOC Document Viewer Modal */}
+      <ViewNocModal
+        isOpen={isViewNocOpen}
+        onClose={() => setIsViewNocOpen(false)}
+        passNumber={pass.passNumber}
+        ownerName={pass.ownerName}
+        nocDocumentUrl={pass.nocDocumentUrl || ''}
+        nocDocumentName={pass.nocDocumentName}
+        villageName={village.villageName}
+      />
     </div>
   );
 };

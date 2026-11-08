@@ -317,6 +317,8 @@ export async function clearAllDataAndUsersFromFirebase(): Promise<void> {
       await remove(ref(rtdb, 'land_passes'));
       await remove(ref(rtdb, 'villages'));
       await remove(ref(rtdb, 'audit_logs'));
+      await remove(ref(rtdb, 'households'));
+      await remove(ref(rtdb, 'property_taxes'));
       console.log('Realtime Database cleared completely.');
     } catch (e) {
       console.warn('Failed to clear RTDB:', e);
@@ -326,7 +328,7 @@ export async function clearAllDataAndUsersFromFirebase(): Promise<void> {
   // 2. Clear Firestore collections
   if (db && navigator.onLine) {
     try {
-      const collections = ['users', 'land_passes', 'villages', 'audit_logs'];
+      const collections = ['users', 'land_passes', 'villages', 'audit_logs', 'households', 'property_taxes'];
       for (const colName of collections) {
         const snap = await getDocs(collection(db, colName));
         for (const d of snap.docs) {
@@ -347,6 +349,8 @@ export async function clearAllDataAndUsersFromFirebase(): Promise<void> {
     localStorage.removeItem('mizoram_vc_villages_cache');
     localStorage.removeItem('mizoram_vc_audit_logs');
     localStorage.removeItem('mizoram_vc_offline_mutation_queue');
+    localStorage.removeItem('mizoram_vc_encrypted_households_cache');
+    localStorage.removeItem('mizoram_vc_encrypted_tax_records_cache');
     sessionStorage.removeItem('mizoram_vc_full_authority');
   } catch {}
 }

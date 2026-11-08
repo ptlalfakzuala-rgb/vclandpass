@@ -13,8 +13,24 @@ import {
   UserProfile,
   SyncStatus,
   VillageConfig,
-  PrintSettings
+  PrintSettings,
+  HouseholdFamily,
+  PropertyTaxRecord
 } from './types';
+import {
+  getCachedHouseholds,
+  setCachedHouseholds,
+  fetchHouseholdsFromCloud,
+  saveHouseholdRecord,
+  deleteHouseholdRecord,
+  getCachedTaxRecords,
+  setCachedTaxRecords,
+  fetchTaxRecordsFromCloud,
+  saveTaxRecord,
+  deleteTaxRecord,
+  subscribeToRTDBHouseholds,
+  subscribeToRTDBTaxRecords
+} from './services/ptmsService';
 import {
   getCachedPasses,
   setCachedPasses,
@@ -71,6 +87,10 @@ import { FullAuthorityModal } from './components/FullAuthorityModal';
 import { AuthorityKeyModal } from './components/AuthorityKeyModal';
 import { DeletePassModal } from './components/DeletePassModal';
 import { AboutAppModal } from './components/AboutAppModal';
+import { PropertyTaxManagementPage } from './components/PropertyTaxManagementPage';
+import { AddEditHouseholdModal } from './components/AddEditHouseholdModal';
+import { AddEditTaxModal } from './components/AddEditTaxModal';
+import { PrintableTaxReceiptModal } from './components/PrintableTaxReceiptModal';
 
 import {
   Search,
@@ -169,7 +189,7 @@ export default function App() {
     }
   });
 
-  const [currentPage, setCurrentPage] = useState<'passes' | 'secretary_profile' | 'village_council'>('passes');
+  const [currentPage, setCurrentPage] = useState<'passes' | 'secretary_profile' | 'village_council' | 'ptms'>('passes');
   const [selectedPassForPrint, setSelectedPassForPrint] = useState<LandPass | null>(null);
   const [editingPass, setEditingPass] = useState<LandPass | null>(null);
   const [isAddEditOpen, setIsAddEditOpen] = useState<boolean>(false);
@@ -180,6 +200,15 @@ export default function App() {
   const [isAuditLogOpen, setIsAuditLogOpen] = useState<boolean>(false);
   const [isVerifyOpen, setIsVerifyOpen] = useState<boolean>(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState<boolean>(false);
+
+  // PTMS State
+  const [households, setHouseholds] = useState<HouseholdFamily[]>([]);
+  const [taxRecords, setTaxRecords] = useState<PropertyTaxRecord[]>([]);
+  const [isAddHouseholdOpen, setIsAddHouseholdOpen] = useState<boolean>(false);
+  const [editingHousehold, setEditingHousehold] = useState<HouseholdFamily | null>(null);
+  const [isAddTaxOpen, setIsAddTaxOpen] = useState<boolean>(false);
+  const [editingTax, setEditingTax] = useState<PropertyTaxRecord | null>(null);
+  const [selectedTaxForReceipt, setSelectedTaxForReceipt] = useState<PropertyTaxRecord | null>(null);
 
   // Users list
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
@@ -232,6 +261,22 @@ export default function App() {
           setPasses(seeded);
         });
       }
+    });
+
+    // Load households from Cache and Cloud
+    getCachedHouseholds().then((cachedH) => {
+      if (cachedH && cachedH.length > 0) setHouseholds(cachedH);
+      fetchHouseholdsFromCloud().then((cloudH) => {
+        if (cloudH && cloudH.length > 0) setHouseholds(cloudH);
+      });
+    });
+
+    // Load tax records from Cache and Cloud
+    getCachedTaxRecords().then((cachedT) => {
+      if (cachedT && cachedT.length > 0) setTaxRecords(cachedT);
+      fetchTaxRecordsFromCloud().then((cloudT) => {
+        if (cloudT && cloudT.length > 0) setTaxRecords(cloudT);
+      });
     });
 
     // Auto-store/transfer all database state to Firebase Realtime Database
@@ -320,6 +365,21 @@ export default function App() {
           if (liveVillages && liveVillages.length > 0) {
             setVillages(liveVillages);
             setCachedVillages(liveVillages);
+          }
+        });
+
+        // PTMS Realtime Database Subscriptions
+        subscribeToRTDBHouseholds((liveHouseholds) => {
+          if (liveHouseholds && liveHouseholds.length > 0) {
+            setHouseholds(liveHouseholds);
+            setCachedHouseholds(liveHouseholds);
+          }
+        });
+
+        subscribeToRTDBTaxRecords((liveTaxes) => {
+          if (liveTaxes && liveTaxes.length > 0) {
+            setTaxRecords(liveTaxes);
+            setCachedTaxRecords(liveTaxes);
           }
         });
       } catch (err) {
@@ -809,6 +869,116 @@ export default function App() {
       'info'
     );
     setPassToDeleteForWarning(null);
+  };
+
+  // =========================================================================
+  // PTMS (PROPERTY TAX & FAMILY ID) HANDLERS
+  // =========================================================================
+
+  const handleSaveHousehold = async (household: HouseholdFamily) => {
+    try {
+      const saved = await saveHouseholdRecord(household);
+      setHouseholds((prev) => {
+        const idx = prev.findIndex((h) => h.id === saved.id);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = saved;
+          return updated;
+        }
+        return [saved, ...prev];
+      });
+
+      logActivity(
+        editingHousehold ? 'UPDATE_HOUSEHOLD' : 'CREATE_HOUSEHOLD',
+        saved.id,
+        saved.familyId,
+        currentUser?.displayName || currentUser?.username || 'Secretary',
+        `${editingHousehold ? 'Updated' : 'Registered new'} Household Family ID: ${saved.familyId} (${saved.headOfFamily}) with ${saved.totalMembers} members.`
+      );
+
+      setIsAddHouseholdOpen(false);
+      setEditingHousehold(null);
+      showNotification(`Family ID ${saved.familyId} (${saved.headOfFamily}) saved successfully!`, 'success');
+    } catch (err: any) {
+      console.error('Save household error:', err);
+      showNotification(`Error saving household: ${err?.message || err}`, 'warn');
+    }
+  };
+
+  const handleDeleteHousehold = async (household: HouseholdFamily) => {
+    if (!window.confirm(`Are you sure you want to permanently delete Family ID ${household.familyId} (${household.headOfFamily})?`)) {
+      return;
+    }
+    try {
+      await deleteHouseholdRecord(household.id);
+      setHouseholds((prev) => prev.filter((h) => h.id !== household.id));
+
+      logActivity(
+        'DELETE_HOUSEHOLD',
+        household.id,
+        household.familyId,
+        currentUser?.displayName || currentUser?.username || 'Secretary',
+        `Deleted Household Family ID: ${household.familyId} (${household.headOfFamily})`
+      );
+
+      showNotification(`Family ID ${household.familyId} deleted.`, 'info');
+    } catch (err: any) {
+      console.error('Delete household error:', err);
+      showNotification(`Error deleting household: ${err?.message || err}`, 'warn');
+    }
+  };
+
+  const handleSaveTaxRecord = async (tax: PropertyTaxRecord) => {
+    try {
+      const saved = await saveTaxRecord(tax);
+      setTaxRecords((prev) => {
+        const idx = prev.findIndex((t) => t.id === saved.id);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = saved;
+          return updated;
+        }
+        return [saved, ...prev];
+      });
+
+      logActivity(
+        editingTax ? 'UPDATE_TAX_RECORD' : 'CREATE_TAX_RECORD',
+        saved.id,
+        saved.taxInvoiceNumber,
+        currentUser?.displayName || currentUser?.username || 'Secretary',
+        `${editingTax ? 'Updated' : 'Issued'} Property Tax Invoice ${saved.taxInvoiceNumber} for Family ID ${saved.familyId} (Amount: ₹${saved.totalPayableAmount}, Status: ${saved.paymentStatus}).`
+      );
+
+      setIsAddTaxOpen(false);
+      setEditingTax(null);
+      showNotification(`Tax Invoice ${saved.taxInvoiceNumber} saved!`, 'success');
+    } catch (err: any) {
+      console.error('Save tax record error:', err);
+      showNotification(`Error saving tax invoice: ${err?.message || err}`, 'warn');
+    }
+  };
+
+  const handleDeleteTaxRecord = async (tax: PropertyTaxRecord) => {
+    if (!window.confirm(`Are you sure you want to delete Tax Invoice ${tax.taxInvoiceNumber} for ${tax.householdHeadName}?`)) {
+      return;
+    }
+    try {
+      await deleteTaxRecord(tax.id);
+      setTaxRecords((prev) => prev.filter((t) => t.id !== tax.id));
+
+      logActivity(
+        'DELETE_TAX_RECORD',
+        tax.id,
+        tax.taxInvoiceNumber,
+        currentUser?.displayName || currentUser?.username || 'Secretary',
+        `Deleted Property Tax Invoice ${tax.taxInvoiceNumber} for Family ${tax.familyId}`
+      );
+
+      showNotification(`Tax invoice ${tax.taxInvoiceNumber} deleted.`, 'info');
+    } catch (err: any) {
+      console.error('Delete tax error:', err);
+      showNotification(`Error deleting tax invoice: ${err?.message || err}`, 'warn');
+    }
   };
 
   // Transfer all database records to Firebase Realtime Database
@@ -1389,6 +1559,37 @@ export default function App() {
         )}
           </>
         )}
+
+        {/* VIEW D: PROPERTY TAX MANAGEMENT SYSTEM & FAMILY ID REGISTRY */}
+        {currentPage === 'ptms' && (
+          <PropertyTaxManagementPage
+            currentVillage={currentVillage}
+            currentUser={currentUser}
+            isAdmin={isAdmin}
+            households={households}
+            taxRecords={taxRecords}
+            landPasses={passes}
+            onOpenAddHousehold={() => {
+              setEditingHousehold(null);
+              setIsAddHouseholdOpen(true);
+            }}
+            onEditHousehold={(house) => {
+              setEditingHousehold(house);
+              setIsAddHouseholdOpen(true);
+            }}
+            onDeleteHousehold={handleDeleteHousehold}
+            onOpenAddTax={() => {
+              setEditingTax(null);
+              setIsAddTaxOpen(true);
+            }}
+            onEditTax={(tax) => {
+              setEditingTax(tax);
+              setIsAddTaxOpen(true);
+            }}
+            onDeleteTax={handleDeleteTaxRecord}
+            onPrintReceipt={(tax) => setSelectedTaxForReceipt(tax)}
+          />
+        )}
         </div>
       </main>
 
@@ -1531,6 +1732,44 @@ export default function App() {
         isOpen={isAboutModalOpen}
         onClose={() => setIsAboutModalOpen(false)}
       />
+
+      {/* 13. Household & Family ID Registration Modal */}
+      <AddEditHouseholdModal
+        isOpen={isAddHouseholdOpen}
+        onClose={() => {
+          setIsAddHouseholdOpen(false);
+          setEditingHousehold(null);
+        }}
+        onSave={handleSaveHousehold}
+        editingHousehold={editingHousehold}
+        village={currentVillage}
+        existingHouseholds={households}
+        allLandPasses={passes}
+      />
+
+      {/* 15. Property Tax Assessment & Invoice Modal */}
+      <AddEditTaxModal
+        isOpen={isAddTaxOpen}
+        onClose={() => {
+          setIsAddTaxOpen(false);
+          setEditingTax(null);
+        }}
+        onSave={handleSaveTaxRecord}
+        editingTax={editingTax}
+        village={currentVillage}
+        existingTaxes={taxRecords}
+        households={households}
+        landPasses={passes}
+      />
+
+      {/* 16. Printable A4 Tax Receipt Modal */}
+      {selectedTaxForReceipt && (
+        <PrintableTaxReceiptModal
+          tax={selectedTaxForReceipt}
+          village={currentVillage}
+          onClose={() => setSelectedTaxForReceipt(null)}
+        />
+      )}
     </div>
   );
 }

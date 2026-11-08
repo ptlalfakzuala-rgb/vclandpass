@@ -276,6 +276,133 @@
         }
       },
       "required": ["role"]
+    },
+    "HouseholdFamily": {
+      "title": "HouseholdFamily",
+      "description": "Household / Family registration record with assigned unique Village Council Family ID.",
+      "type": "object",
+      "properties": {
+        "familyId": {
+          "type": "string",
+          "description": "Unique council serial Family ID like SPH-FAM-0001",
+          "maxLength": 64
+        },
+        "villageId": {
+          "type": "string",
+          "description": "Village identifier this family belongs to",
+          "maxLength": 64
+        },
+        "villageName": {
+          "type": "string",
+          "description": "Name of village",
+          "maxLength": 128
+        },
+        "headOfFamily": {
+          "type": "string",
+          "description": "Full name of head of family",
+          "maxLength": 128
+        },
+        "headParentName": {
+          "type": "string",
+          "description": "Father or mother name of household head",
+          "maxLength": 128
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Contact phone number",
+          "maxLength": 32
+        },
+        "vengSection": {
+          "type": "string",
+          "description": "Veng, street, or section in village",
+          "maxLength": 128
+        },
+        "totalMembers": {
+          "type": "number",
+          "description": "Total family member count"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of creation",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update",
+          "maxLength": 64
+        }
+      },
+      "required": ["familyId", "villageId", "headOfFamily", "contactNumber", "vengSection"]
+    },
+    "PropertyTaxRecord": {
+      "title": "PropertyTaxRecord",
+      "description": "Village Council property tax assessment, invoice, and payment tracking record.",
+      "type": "object",
+      "properties": {
+        "taxInvoiceNumber": {
+          "type": "string",
+          "description": "Tax invoice number like PTMS-SPH-2025-0001",
+          "maxLength": 64
+        },
+        "taxYear": {
+          "type": "string",
+          "description": "Financial / Assessment year",
+          "maxLength": 32
+        },
+        "villageId": {
+          "type": "string",
+          "description": "Village identifier",
+          "maxLength": 64
+        },
+        "familyId": {
+          "type": "string",
+          "description": "Linked Family ID",
+          "maxLength": 64
+        },
+        "householdHeadName": {
+          "type": "string",
+          "description": "Name of household head",
+          "maxLength": 128
+        },
+        "propertyCategory": {
+          "type": "string",
+          "description": "Category of property",
+          "maxLength": 64
+        },
+        "totalPayableAmount": {
+          "type": "number",
+          "description": "Total tax and cess payable"
+        },
+        "paymentStatus": {
+          "type": "string",
+          "description": "Payment status (paid, unpaid, partial, overdue)",
+          "maxLength": 32
+        },
+        "amountPaid": {
+          "type": "number",
+          "description": "Amount paid so far"
+        },
+        "balanceDue": {
+          "type": "number",
+          "description": "Remaining balance due"
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "Payment deadline date",
+          "maxLength": 32
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of creation",
+          "maxLength": 64
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update",
+          "maxLength": 64
+        }
+      },
+      "required": ["taxInvoiceNumber", "taxYear", "villageId", "familyId", "householdHeadName", "totalPayableAmount", "paymentStatus"]
     }
   },
   "firestore": {
@@ -286,6 +413,14 @@
     "/land_passes/{passId}": {
       "schema": "LandPass",
       "description": "Collection of all Mizoram Village Council Huan Ram and In Hmun land passes."
+    },
+    "/households/{householdId}": {
+      "schema": "HouseholdFamily",
+      "description": "Village Council household registrations and assigned Family IDs."
+    },
+    "/property_taxes/{taxId}": {
+      "schema": "PropertyTaxRecord",
+      "description": "Village Council property tax assessment records, invoices, and payments."
     },
     "/audit_logs/{logId}": {
       "schema": "AuditLog",

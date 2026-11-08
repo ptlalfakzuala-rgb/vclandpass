@@ -21,7 +21,9 @@ import {
   Clock,
   Camera,
   FileText,
-  BookOpen
+  BookOpen,
+  Landmark,
+  Users2
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -33,8 +35,8 @@ interface NavbarProps {
   syncStatus: SyncStatus;
   pendingSyncCount: number;
   currentVillage: VillageConfig;
-  currentPage: 'passes' | 'secretary_profile' | 'village_council';
-  onNavigatePage: (page: 'passes' | 'secretary_profile' | 'village_council') => void;
+  currentPage: 'passes' | 'secretary_profile' | 'village_council' | 'ptms';
+  onNavigatePage: (page: 'passes' | 'secretary_profile' | 'village_council' | 'ptms') => void;
   onOpenVillageProfile: () => void;
   onOpenUserProfile: () => void;
   onOpenRegister: () => void;
@@ -291,6 +293,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Building2 className={`w-3.5 h-3.5 transition-transform duration-200 ${currentPage === 'village_council' ? 'scale-110 text-emerald-700' : ''}`} />
               <span>My Village Council</span>
+            </button>
+
+            <button
+              onClick={() => onNavigatePage('ptms')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ease-out active:scale-95 ${
+                currentPage === 'ptms'
+                  ? 'bg-gradient-to-r from-emerald-700 to-teal-800 text-white shadow-xs -translate-y-0.5'
+                  : 'text-neutral-700 hover:text-neutral-950 hover:bg-white/60'
+              }`}
+              title="Property Tax Management System (PTMS) & Family ID Household Registry"
+            >
+              <Landmark className={`w-3.5 h-3.5 transition-transform duration-200 ${currentPage === 'ptms' ? 'scale-110 text-amber-300' : 'text-emerald-700'}`} />
+              <span>Property Tax &amp; Family ID (PTMS)</span>
+              <span className="text-[9px] bg-amber-400 text-neutral-950 font-black px-1.5 py-0.5 rounded-full uppercase ml-0.5">
+                NEW
+              </span>
             </button>
           </div>
 

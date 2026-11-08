@@ -297,6 +297,21 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({ isOpen, onClose })
               </p>
             </div>
 
+            {/* Feature 5: Property Tax Management System (PTMS) & Family ID */}
+            <div className="p-4 bg-amber-50/70 rounded-xl border-2 border-amber-300 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-amber-950 text-sm">
+                <Building2 className="w-4 h-4 text-amber-800" />
+                <span>E. Property Tax Management System (PTMS) &amp; Family ID (NEW)</span>
+              </div>
+              <ul className="text-xs text-neutral-700 space-y-1.5 list-disc list-inside leading-relaxed pl-1">
+                <li><strong>Chhungkaw Family ID Siamna:</strong> Village Council tinin an khuaa chhungkaw awm zawng zawng tan Family ID (e.g. <code>SPH-FAM-0001</code>) indawt thlapin an siam thei a. Chhungkaw Lu (Head) leh member zawng zawng census a chhinchhiah vek theih.</li>
+                <li><strong>Land Pass Nen Inzawmna (Linkage):</strong> He Family ID hnuaiah hian he chhungkua hian Huan Ram emaw In Hmun pass an neih te a link kawp vek theih a ni.</li>
+                <li><strong>Property Tax &amp; Sanitation Cess:</strong> Kum tina In Hmun chhiah (Property Tax), Khawtlang bawlhhlawh leh thianhlimna fee (Sanitation Cess), leh tui/kawngpui cess te invoice felfai taka siamin a khawn theih.</li>
+                <li><strong>A4 Tax Receipt Printing:</strong> Chhiah petute hnenah pek a nih veleh receipt fel tak, Council Seal dahna hmun awl nen A4 lehkhaa chhut chhuah nghal theih a ni.</li>
+                <li><strong>Revenue Analytics &amp; Arrears:</strong> Khaw pum huapa chhiah tlingkhawm zat, chhungkaw la pe lo te, leh sum lut zawng zawng auto-dashboard-ah a lang nghal zung zung.</li>
+              </ul>
+            </div>
+
             {/* Feature 5: Registration & Lifetime Approval */}
             <div className="p-4 bg-emerald-50/70 rounded-xl border border-emerald-300 space-y-2">
               <div className="flex items-center gap-2 font-bold text-emerald-950 text-sm">
