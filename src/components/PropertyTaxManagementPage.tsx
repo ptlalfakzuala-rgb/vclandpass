@@ -408,7 +408,7 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
                             <button
                               onClick={() => onPrintReceipt(tax)}
                               className="p-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-lg cursor-pointer transition-colors"
-                              title="Print A4 Official Tax Receipt"
+                              title="Print A5 Official Tax Receipt"
                             >
                               <Printer className="w-3.5 h-3.5 text-emerald-800" />
                             </button>

@@ -128,8 +128,8 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('File size exceeds 2MB. Please upload a smaller compressed image or document.');
+    if (file.size > 10 * 1024 * 1024) {
+      console.warn('File size exceeds 10MB.');
       return;
     }
 
@@ -152,14 +152,7 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!ownerName.trim()) newErrors.ownerName = 'Owner name is required.';
-    if (!parentName.trim()) newErrors.parentName = "Father's or Mother's name is required.";
-    if (!contactNumber.trim() || contactNumber.length < 8)
-      newErrors.contactNumber = 'Valid contact phone number is required.';
     if (!passNumber.trim()) newErrors.passNumber = 'Pass number is required.';
-    if (!boundaryNorth.trim()) newErrors.boundaryNorth = 'North boundary is required.';
-    if (!boundaryEast.trim()) newErrors.boundaryEast = 'East boundary is required.';
-    if (!boundaryWest.trim()) newErrors.boundaryWest = 'West boundary is required.';
-    if (!boundarySouth.trim()) newErrors.boundarySouth = 'South boundary is required.';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -175,15 +168,15 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
       villageId: village.id,
       villageName: village.villageName,
       ownerName: ownerName.trim(),
-      parentName: parentName.trim(),
-      contactNumber: contactNumber.trim(),
+      parentName: parentName.trim() || 'Nu leh Pa Hming',
+      contactNumber: contactNumber.trim() || 'N/A',
       locationCoordinates: locationCoordinates.trim(),
-      locationAddress: locationAddress.trim(),
-      boundaryNorth: boundaryNorth.trim(),
-      boundaryEast: boundaryEast.trim(),
-      boundaryWest: boundaryWest.trim(),
-      boundarySouth: boundarySouth.trim(),
-      areaSize: areaSize.trim(),
+      locationAddress: locationAddress.trim() || `${village.villageName} Locality`,
+      boundaryNorth: boundaryNorth.trim() || 'Ramri Hmar',
+      boundaryEast: boundaryEast.trim() || 'Ramri Chhak',
+      boundaryWest: boundaryWest.trim() || 'Ramri Thlang',
+      boundarySouth: boundarySouth.trim() || 'Ramri Chhim',
+      areaSize: areaSize.trim() || '1200 Sq.ft',
       nocDocumentUrl,
       nocDocumentName,
       issueDate,
@@ -563,48 +556,70 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {/* Option 1: Direct Scan from Printer / Scanner */}
                   <button
                     type="button"
                     onClick={() => setIsScannerOpen(true)}
-                    className="p-4 rounded-xl border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50/50 hover:from-emerald-100 hover:to-teal-100 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
+                    className="p-3.5 rounded-xl border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50/50 hover:from-emerald-100 hover:to-teal-100 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="p-2 bg-emerald-700 text-white rounded-lg shadow-xs group-hover:scale-110 transition-transform">
-                        <Printer className="w-5 h-5" />
+                        <Printer className="w-4 h-4" />
                       </div>
-                      <span className="text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full uppercase">
+                      <span className="text-[10px] bg-emerald-700 text-white font-bold px-1.5 py-0.5 rounded-full uppercase">
                         Scan Command
                       </span>
                     </div>
                     <span className="text-xs font-bold text-neutral-900 block">
-                      Scan from Printer / Scanner
+                      Scan from Printer
                     </span>
-                    <span className="text-[11px] text-neutral-600 block mt-0.5">
-                      Direct scan via flatbed optical platen, ADF feeder, or connected camera
+                    <span className="text-[11px] text-neutral-600 block mt-0.5 leading-snug">
+                      Flatbed platen / ADF scanner command
                     </span>
                   </button>
 
-                  {/* Option 2: Upload File / Photo */}
+                  {/* Option 2: Scan from Local Printer Driver */}
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-4 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
+                    className="p-3.5 rounded-xl border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50/50 hover:from-blue-100 hover:to-indigo-100 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="p-2 bg-blue-700 text-white rounded-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <Printer className="w-4 h-4" />
+                      </div>
+                      <span className="text-[10px] bg-blue-700 text-white font-bold px-1.5 py-0.5 rounded-full uppercase">
+                        Local Driver
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold text-neutral-900 block">
+                      Local Printer Driver
+                    </span>
+                    <span className="text-[11px] text-neutral-600 block mt-0.5 leading-snug">
+                      HP Scan, Canon IJ, Epson or Windows Scan
+                    </span>
+                  </button>
+
+                  {/* Option 3: Upload File / Photo */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-3.5 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="p-2 bg-neutral-100 text-neutral-700 rounded-lg group-hover:scale-110 transition-transform">
-                        <Upload className="w-5 h-5" />
+                        <Upload className="w-4 h-4" />
                       </div>
-                      <span className="text-[10px] bg-neutral-200 text-neutral-700 font-medium px-2 py-0.5 rounded-full">
-                        File Upload
+                      <span className="text-[10px] bg-neutral-200 text-neutral-700 font-medium px-1.5 py-0.5 rounded-full">
+                        File
                       </span>
                     </div>
                     <span className="text-xs font-bold text-neutral-900 block">
                       Upload Scanned File
                     </span>
-                    <span className="text-[11px] text-neutral-500 block mt-0.5">
-                      Select JPG, PNG, or PDF file from your device (Max 2MB)
+                    <span className="text-[11px] text-neutral-500 block mt-0.5 leading-snug">
+                      Select JPG, PNG, or PDF from device
                     </span>
                   </button>
                 </div>

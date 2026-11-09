@@ -298,25 +298,26 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({ isOpen, onClose })
             </div>
 
             {/* Feature 5: Property Tax Management System (PTMS) & Family ID */}
-            <div className="p-4 bg-amber-50/70 rounded-xl border-2 border-amber-300 space-y-2">
-              <div className="flex items-center gap-2 font-bold text-amber-950 text-sm">
-                <Building2 className="w-4 h-4 text-amber-800" />
-                <span>E. Property Tax Management System (PTMS) &amp; Family ID (NEW)</span>
+            <div className="p-4 bg-purple-50/70 rounded-xl border-2 border-purple-300 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-purple-950 text-sm">
+                <Building2 className="w-4 h-4 text-purple-800" />
+                <span>E. Property Tax Management System (PTMS) &amp; Household Family ID (NEW)</span>
               </div>
               <ul className="text-xs text-neutral-700 space-y-1.5 list-disc list-inside leading-relaxed pl-1">
-                <li><strong>Chhungkaw Family ID Siamna:</strong> Village Council tinin an khuaa chhungkaw awm zawng zawng tan Family ID (e.g. <code>SPH-FAM-0001</code>) indawt thlapin an siam thei a. Chhungkaw Lu (Head) leh member zawng zawng census a chhinchhiah vek theih.</li>
-                <li><strong>Land Pass Nen Inzawmna (Linkage):</strong> He Family ID hnuaiah hian he chhungkua hian Huan Ram emaw In Hmun pass an neih te a link kawp vek theih a ni.</li>
-                <li><strong>Property Tax &amp; Sanitation Cess:</strong> Kum tina In Hmun chhiah (Property Tax), Khawtlang bawlhhlawh leh thianhlimna fee (Sanitation Cess), leh tui/kawngpui cess te invoice felfai taka siamin a khawn theih.</li>
-                <li><strong>A4 Tax Receipt Printing:</strong> Chhiah petute hnenah pek a nih veleh receipt fel tak, Council Seal dahna hmun awl nen A4 lehkhaa chhut chhuah nghal theih a ni.</li>
-                <li><strong>Revenue Analytics &amp; Arrears:</strong> Khaw pum huapa chhiah tlingkhawm zat, chhungkaw la pe lo te, leh sum lut zawng zawng auto-dashboard-ah a lang nghal zung zung.</li>
+                <li><strong>Chhungkaw Family ID Siamna (0001 aṭanga indawt):</strong> Village Council tinin an khuaa chhungkaw awm zawng zawng tan Council Official Household Family ID (e.g. <code>SPH-FAM-0001</code>, <code>0002</code>...) 0001 aṭanga indawt thlapin an register thei a. Chhungkaw Lu (Head of Family) leh member zawng zawng census, veng, leh in number felfai takin a vawng ṭha.</li>
+                <li><strong>Land Pass Linkage (Huan Ram &amp; In Hmun):</strong> He Family ID hnuaiah hian he chhungkua hian Huan Ram emaw In Hmun pass an neih te Pass Number emaw Ram Neitu hminga zawn zung zung theihna (search &amp; link) hmangin a thlunzawm (link) nghal theih vek a ni.</li>
+                <li><strong>Property Tax &amp; Cess Khawnna (Invoice &amp; Auto-Calculate):</strong> Kum tina In Hmun chhiah (Base Property Tax), Khawtlang bawlhhlawh leh thianhlimna fee (Garbage/Sanitation Cess), leh Civic/Water Cess te auto-calculate thlapin invoice a siam a, amount collected a in-fill nghal zung zung bawk.</li>
+                <li><strong>A5 Official Tax Receipt Printing:</strong> Chhiah petute hnenah pek a nih veleh receipt fel tak, Council Seal dahna hmun, Secretary leh President signature thlap nen standard A5 lehkhaa chhut chhuah (Print A5 Receipt) nghal theih a ni.</li>
+                <li><strong>Safe Record Management:</strong> Chhungkaw Family ID leh Tax Invoice record paih dawn reng rengin Warning Dialogue Box hman a ni a, hriat loh palha delete a venghim tlat.</li>
+                <li><strong>Live Background Auto Sync:</strong> Data thar ziah luh leh siamṭhat apiang chu phone/computer atangin Firebase Realtime Cloud-ah background-in amahin live-in a in-sync nghal zel a ni.</li>
               </ul>
             </div>
 
-            {/* Feature 5: Registration & Lifetime Approval */}
+            {/* Feature 6: Registration & Lifetime Approval */}
             <div className="p-4 bg-emerald-50/70 rounded-xl border border-emerald-300 space-y-2">
               <div className="flex items-center gap-2 font-bold text-emerald-950 text-sm">
                 <ShieldCheck className="w-4 h-4 text-emerald-800" />
-                <span>E. Secretary Registration &amp; Lifetime Approval (₹299 One-time Fee)</span>
+                <span>F. Secretary Registration &amp; Lifetime Approval (₹299 One-time Fee)</span>
               </div>
               <ul className="text-xs text-neutral-700 space-y-1.5 list-disc list-inside leading-relaxed pl-1">
                 <li><strong>Kumhlun Hman Man (Lifetime):</strong> Vawi khat chauh ₹299 pein Authority hnen aṭangin Lifetime Approval pek a ni. Thla tin fee emaw kum tin fee a awm lo.</li>
@@ -325,14 +326,14 @@ export const AboutAppModal: React.FC<AboutAppModalProps> = ({ isOpen, onClose })
               </ul>
             </div>
 
-            {/* Feature 6: Offline-First & Realtime Cloud */}
+            {/* Feature 7: Offline-First & Realtime Cloud */}
             <div className="p-4 bg-neutral-100 rounded-xl border border-neutral-300 space-y-2">
               <div className="flex items-center gap-2 font-bold text-neutral-900 text-sm">
                 <Wifi className="w-4 h-4 text-neutral-700" />
-                <span>F. Offline Hmunah Pawh Hman Theih (Silent Cloud Background Sync)</span>
+                <span>G. Offline Hmunah Pawh Hman Theih (Always Live Auto-Sync in Background)</span>
               </div>
               <p className="text-xs text-neutral-700 leading-relaxed">
-                Internet awm lohna ram kilkhawr berah pawh pass siam zel theih a ni a, phone-ah him takin a inkhawl ṭha a. Internet awm veleh Firebase Realtime Cloud-ah a in-sync nghal zel a, background-ah amahin a thawk reng a ni.
+                Internet awm lohna ram kilkhawr berah pawh pass leh tax invoice siam theih reng a ni a, encrypted local cache-ah him takin a inkhawl ṭha a. Internet awm veleh Firebase Realtime Cloud Database leh Firestore-ah silent-in amahin a live-sync reng a ni.
               </p>
             </div>
           </div>

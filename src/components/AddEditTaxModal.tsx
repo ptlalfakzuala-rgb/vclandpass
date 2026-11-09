@@ -57,12 +57,12 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
   const [garbageOrSanitationFee, setGarbageOrSanitationFee] = useState<string>(
     String(village.defaultSanitationFee ?? 50)
   );
-  const [waterOrCivicFee, setWaterOrCivicFee] = useState<string>('0');
+  const [waterOrCivicFee, setWaterOrCivicFee] = useState<string>('');
   const [totalPayableAmount, setTotalPayableAmount] = useState<number>(200);
 
   // Payment State
   const [paymentStatus, setPaymentStatus] = useState<TaxPaymentStatus>('unpaid');
-  const [amountPaid, setAmountPaid] = useState<string>('0');
+  const [amountPaid, setAmountPaid] = useState<string>('');
   const [paymentMode, setPaymentMode] = useState<'cash' | 'upi' | 'bank_transfer' | 'cheque'>('cash');
   const [paymentReference, setPaymentReference] = useState<string>('');
   const [dueDate, setDueDate] = useState<string>('2026-12-31');
@@ -87,10 +87,10 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       setAnnualAssessedValue(String(editingTax.annualAssessedValue || 150));
       setTotalTaxDue(String(editingTax.totalTaxDue || 150));
       setGarbageOrSanitationFee(String(editingTax.garbageOrSanitationFee ?? 50));
-      setWaterOrCivicFee(String(editingTax.waterOrCivicFee ?? 0));
+      setWaterOrCivicFee(editingTax.waterOrCivicFee ? String(editingTax.waterOrCivicFee) : '');
       setTotalPayableAmount(editingTax.totalPayableAmount || 200);
       setPaymentStatus(editingTax.paymentStatus || 'unpaid');
-      setAmountPaid(String(editingTax.amountPaid || 0));
+      setAmountPaid(editingTax.amountPaid ? String(editingTax.amountPaid) : '');
       setPaymentMode(editingTax.paymentMode || 'cash');
       setPaymentReference(editingTax.paymentReference || '');
       setDueDate(editingTax.dueDate || '2026-12-31');
@@ -119,13 +119,13 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       setAnnualAssessedValue(String(bRate));
       setTotalTaxDue(String(bRate));
       setGarbageOrSanitationFee(String(sFee));
-      setWaterOrCivicFee('0');
+      setWaterOrCivicFee('');
       setTotalPayableAmount(bRate + sFee);
       setPaymentStatus('unpaid');
-      setAmountPaid('0');
+      setAmountPaid('');
       setPaymentMode('cash');
       setPaymentReference('');
-      setDueDate('2025-12-31');
+      setDueDate('2026-12-31');
       setRemarks('');
     }
     setErrors({});
@@ -146,7 +146,21 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
     }
   };
 
-  // Recalculate total payable when components change
+  // Handle payment status changes (auto-fills or clears Amount Collected)
+  const handlePaymentStatusChange = (newStatus: TaxPaymentStatus) => {
+    setPaymentStatus(newStatus);
+    const tax = parseFloat(totalTaxDue) || 0;
+    const san = parseFloat(garbageOrSanitationFee) || 0;
+    const civic = parseFloat(waterOrCivicFee) || 0;
+    const total = Math.max(0, tax + san + civic);
+    if (newStatus === 'paid') {
+      setAmountPaid(total > 0 ? String(total) : '');
+    } else if (newStatus === 'unpaid') {
+      setAmountPaid('');
+    }
+  };
+
+  // Recalculate total payable when components change, and auto-fill amountPaid if paid
   useEffect(() => {
     const tax = parseFloat(totalTaxDue) || 0;
     const san = parseFloat(garbageOrSanitationFee) || 0;
@@ -154,16 +168,25 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
     const total = Math.max(0, tax + san + civic);
     setTotalPayableAmount(total);
 
-    // Auto-adjust status if amountPaid matches total
-    const paid = parseFloat(amountPaid) || 0;
+    // Auto-fill Amount Collected if payment status is set to paid
+    if (paymentStatus === 'paid') {
+      setAmountPaid(total > 0 ? String(total) : '');
+    }
+  }, [totalTaxDue, garbageOrSanitationFee, waterOrCivicFee, paymentStatus]);
+
+  // Handle manual input of Amount Collected and auto-adjust payment status
+  const handleAmountPaidChange = (val: string) => {
+    setAmountPaid(val);
+    const paid = parseFloat(val) || 0;
+    const total = totalPayableAmount;
     if (paid >= total && total > 0) {
       setPaymentStatus('paid');
     } else if (paid > 0 && paid < total) {
       setPaymentStatus('partial');
     } else {
-      if (paymentStatus === 'paid') setPaymentStatus('unpaid');
+      setPaymentStatus('unpaid');
     }
-  }, [totalTaxDue, garbageOrSanitationFee, waterOrCivicFee, amountPaid]);
+  };
 
   if (!isOpen) return null;
 
@@ -224,6 +247,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
     };
 
     onSave(record);
+    onClose();
   };
 
   return (
@@ -445,6 +469,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
                   min={0}
                   value={garbageOrSanitationFee}
                   onChange={(e) => setGarbageOrSanitationFee(e.target.value)}
+                  placeholder="0"
                   className="w-full px-3 py-2 bg-white border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 text-xs font-bold font-mono"
                 />
               </div>
@@ -458,6 +483,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
                   min={0}
                   value={waterOrCivicFee}
                   onChange={(e) => setWaterOrCivicFee(e.target.value)}
+                  placeholder="0"
                   className="w-full px-3 py-2 bg-white border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 text-xs font-bold font-mono"
                 />
               </div>
@@ -477,7 +503,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
                 </label>
                 <select
                   value={paymentStatus}
-                  onChange={(e: any) => setPaymentStatus(e.target.value)}
+                  onChange={(e: any) => handlePaymentStatusChange(e.target.value)}
                   className={`w-full px-3 py-2 rounded-xl text-xs font-bold border ${
                     paymentStatus === 'paid'
                       ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
@@ -502,7 +528,8 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
                   min={0}
                   max={totalPayableAmount}
                   value={amountPaid}
-                  onChange={(e) => setAmountPaid(e.target.value)}
+                  onChange={(e) => handleAmountPaidChange(e.target.value)}
+                  placeholder="0"
                   className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 text-xs font-bold font-mono"
                 />
               </div>

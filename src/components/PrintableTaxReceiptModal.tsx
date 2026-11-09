@@ -55,7 +55,7 @@ export const PrintableTaxReceiptModal: React.FC<PrintableTaxReceiptModalProps> =
               className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm transition-transform active:scale-95"
             >
               <Printer className="w-4 h-4" />
-              <span>Print A4 Receipt</span>
+              <span>Print A5 Receipt</span>
             </button>
             <button
               onClick={onClose}
@@ -67,9 +67,21 @@ export const PrintableTaxReceiptModal: React.FC<PrintableTaxReceiptModalProps> =
         </div>
 
         {/* Printable Body */}
-        <div ref={printRef} className="p-8 overflow-y-auto space-y-6 text-neutral-900 print:p-6 print:space-y-4">
+        <style>{`
+          @media print {
+            @page {
+              size: A5 portrait;
+              margin: 6mm;
+            }
+            body {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+          }
+        `}</style>
+        <div ref={printRef} className="p-6 overflow-y-auto space-y-4 text-neutral-900 print:p-2 print:space-y-2 text-xs">
           {/* Official Letterhead */}
-          <div className="text-center border-b-2 border-emerald-900 pb-4 relative">
+          <div className="text-center border-b-2 border-emerald-900 pb-2 relative">
             <div className="flex items-center justify-center gap-4 mb-2">
               {village.logoUrl ? (
                 <img
@@ -229,25 +241,25 @@ export const PrintableTaxReceiptModal: React.FC<PrintableTaxReceiptModalProps> =
           </div>
 
           {/* Signatures & Seal Space */}
-          <div className="pt-8 grid grid-cols-2 gap-8 text-center text-xs">
+          <div className="pt-4 grid grid-cols-2 gap-6 text-center text-xs print:pt-3">
             <div>
-              <div className="h-16 flex items-end justify-center pb-2">
-                <span className="font-serif font-bold text-neutral-900 border-b border-neutral-400 px-8">
+              <div className="h-10 flex items-end justify-center pb-1">
+                <span className="font-serif font-bold text-neutral-900 border-b border-neutral-400 px-6 text-xs">
                   {village.secretaryName || 'Council Secretary'}
                 </span>
               </div>
-              <span className="text-neutral-600 block text-[11px]">Secretary, Village Council</span>
-              <span className="text-neutral-400 text-[10px]">{village.villageName} Council</span>
+              <span className="text-neutral-600 block text-[10px]">Secretary, Village Council</span>
+              <span className="text-neutral-400 text-[9px]">{village.villageName} Council</span>
             </div>
 
             <div>
-              <div className="h-16 flex items-end justify-center pb-2">
-                <span className="font-serif font-bold text-neutral-900 border-b border-neutral-400 px-8">
+              <div className="h-10 flex items-end justify-center pb-1">
+                <span className="font-serif font-bold text-neutral-900 border-b border-neutral-400 px-6 text-xs">
                   {village.presidentName || 'Council President'}
                 </span>
               </div>
-              <span className="text-neutral-600 block text-[11px]">President, Village Council</span>
-              <span className="text-neutral-400 text-[10px]">{village.villageName} Council</span>
+              <span className="text-neutral-600 block text-[10px]">President, Village Council</span>
+              <span className="text-neutral-400 text-[9px]">{village.villageName} Council</span>
             </div>
           </div>
 

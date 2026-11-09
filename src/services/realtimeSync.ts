@@ -1,7 +1,7 @@
 import { ref, set, get, remove, onValue, off } from 'firebase/database';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { rtdb, db } from './firebase';
-import { UserProfile, LandPass, VillageConfig, AuditLog } from '../types';
+import { UserProfile, LandPass, VillageConfig, AuditLog, HouseholdFamily, PropertyTaxRecord } from '../types';
 import { cleanForFirestore } from './userService';
 
 /**
@@ -202,6 +202,8 @@ export interface TransferResult {
   villages: number;
   users: number;
   auditLogs: number;
+  households: number;
+  propertyTaxes: number;
   success: boolean;
   message: string;
 }
@@ -210,13 +212,17 @@ export async function transferAllDataToRTDB(
   explicitPasses?: LandPass[],
   explicitVillages?: VillageConfig[],
   explicitUsers?: UserProfile[],
-  explicitLogs?: AuditLog[]
+  explicitLogs?: AuditLog[],
+  explicitHouseholds?: HouseholdFamily[],
+  explicitTaxes?: PropertyTaxRecord[]
 ): Promise<TransferResult> {
   const result: TransferResult = {
     passes: 0,
     villages: 0,
     users: 0,
     auditLogs: 0,
+    households: 0,
+    propertyTaxes: 0,
     success: false,
     message: '',
   };
@@ -295,8 +301,44 @@ export async function transferAllDataToRTDB(
       }
     }
 
+    // 5. Households (PTMS)
+    let householdsToTransfer = explicitHouseholds || [];
+    if (householdsToTransfer.length === 0 && db && navigator.onLine) {
+      try {
+        const snap = await getDocs(collection(db, 'households'));
+        snap.forEach((d) => householdsToTransfer.push(d.data() as HouseholdFamily));
+      } catch (e) {
+        console.warn('Error reading Firestore households for RTDB transfer:', e);
+      }
+    }
+    for (const h of householdsToTransfer) {
+      if (h && h.id) {
+        const rtdbRef = ref(rtdb, `households/${h.id}`);
+        await set(rtdbRef, cleanForRTDB(h));
+        result.households++;
+      }
+    }
+
+    // 6. Property Taxes (PTMS)
+    let taxesToTransfer = explicitTaxes || [];
+    if (taxesToTransfer.length === 0 && db && navigator.onLine) {
+      try {
+        const snap = await getDocs(collection(db, 'property_taxes'));
+        snap.forEach((d) => taxesToTransfer.push(d.data() as PropertyTaxRecord));
+      } catch (e) {
+        console.warn('Error reading Firestore property_taxes for RTDB transfer:', e);
+      }
+    }
+    for (const t of taxesToTransfer) {
+      if (t && t.id) {
+        const rtdbRef = ref(rtdb, `property_taxes/${t.id}`);
+        await set(rtdbRef, cleanForRTDB(t));
+        result.propertyTaxes++;
+      }
+    }
+
     result.success = true;
-    result.message = `Successfully transferred ${result.passes} Land Passes, ${result.villages} Villages, ${result.users} Users, and ${result.auditLogs} Audit Logs to Firebase Realtime Database.`;
+    result.message = `Successfully transferred ${result.passes} Land Passes, ${result.villages} Villages, ${result.users} Users, ${result.households} Households, and ${result.propertyTaxes} Tax Invoices to Firebase Realtime Database.`;
     return result;
   } catch (err: any) {
     result.success = false;

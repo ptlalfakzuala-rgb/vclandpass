@@ -91,6 +91,7 @@ import { PropertyTaxManagementPage } from './components/PropertyTaxManagementPag
 import { AddEditHouseholdModal } from './components/AddEditHouseholdModal';
 import { AddEditTaxModal } from './components/AddEditTaxModal';
 import { PrintableTaxReceiptModal } from './components/PrintableTaxReceiptModal';
+import { DeleteWarningModal } from './components/DeleteWarningModal';
 
 import {
   Search,
@@ -214,8 +215,10 @@ export default function App() {
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'warn' } | null>(null);
 
-  // Warning dialogue box state for deleting a Land Pass
+  // Warning dialogue box state for deleting records
   const [passToDeleteForWarning, setPassToDeleteForWarning] = useState<LandPass | null>(null);
+  const [householdToDeleteForWarning, setHouseholdToDeleteForWarning] = useState<HouseholdFamily | null>(null);
+  const [taxToDeleteForWarning, setTaxToDeleteForWarning] = useState<PropertyTaxRecord | null>(null);
 
   const showNotification = (message: string, type: 'success' | 'info' | 'warn' = 'success') => {
     setNotification({ message, type });
@@ -312,6 +315,8 @@ export default function App() {
     let unsubscribeRTDBPasses: (() => void) | null = null;
     let unsubscribeRTDBUsers: (() => void) | null = null;
     let unsubscribeRTDBVillages: (() => void) | null = null;
+    let unsubscribeRTDBHouseholds: (() => void) | null = null;
+    let unsubscribeRTDBTaxRecords: (() => void) | null = null;
 
     if (navigator.onLine) {
       // 1. Firebase Realtime Database Live Listeners
@@ -368,15 +373,15 @@ export default function App() {
           }
         });
 
-        // PTMS Realtime Database Subscriptions
-        subscribeToRTDBHouseholds((liveHouseholds) => {
+        // PTMS Realtime Database Subscriptions (Live Background Sync)
+        unsubscribeRTDBHouseholds = subscribeToRTDBHouseholds((liveHouseholds) => {
           if (liveHouseholds && liveHouseholds.length > 0) {
             setHouseholds(liveHouseholds);
             setCachedHouseholds(liveHouseholds);
           }
         });
 
-        subscribeToRTDBTaxRecords((liveTaxes) => {
+        unsubscribeRTDBTaxRecords = subscribeToRTDBTaxRecords((liveTaxes) => {
           if (liveTaxes && liveTaxes.length > 0) {
             setTaxRecords(liveTaxes);
             setCachedTaxRecords(liveTaxes);
@@ -462,6 +467,8 @@ export default function App() {
       if (unsubscribeRTDBPasses) unsubscribeRTDBPasses();
       if (unsubscribeRTDBUsers) unsubscribeRTDBUsers();
       if (unsubscribeRTDBVillages) unsubscribeRTDBVillages();
+      if (unsubscribeRTDBHouseholds) unsubscribeRTDBHouseholds();
+      if (unsubscribeRTDBTaxRecords) unsubscribeRTDBTaxRecords();
       if (unsubscribeFirestorePasses) unsubscribeFirestorePasses();
       if (unsubscribeFirestoreUsers) unsubscribeFirestoreUsers();
       window.removeEventListener('online', handleOnline);
@@ -716,36 +723,28 @@ export default function App() {
     }
   };
 
-  // Add or Edit Land Record: Newly created pass is pending until Authority approved (unless created by Full Authority)
+  // Add or Edit Land Record: Newly created pass is saved and immediately ready for printable review
   const handleSavePass = async (
     passData: Omit<LandPass, 'id' | 'createdAt' | 'updatedAt' | 'syncedToCloud'>,
     isEdit: boolean,
     existingId?: string
   ) => {
-    if (!isVillageConfigured) {
-      showNotification('Configure Village Profile must be completed before issuing a Land Pass.', 'warn');
-      setIsMandatoryProfileUpdate(true);
-      setIsVillageProfileOpen(true);
-      return;
-    }
-
     const nowIso = new Date().toISOString();
     const id = isEdit && existingId ? existingId : `MZ_${passData.passType.toUpperCase()}_${Date.now()}`;
+
+    const villageId = currentVillage?.id || passData.villageId || 'saiphai';
+    const villageName = currentVillage?.villageName || passData.villageName || 'Saiphai';
 
     const newOrUpdatedPass: LandPass = {
       ...passData,
       id,
-      villageId: currentVillage.id,
-      villageName: currentVillage.villageName,
+      villageId,
+      villageName,
       createdBy: isEdit && editingPass?.createdBy ? editingPass.createdBy : (currentUser?.uid || 'authority'),
       createdAt: isEdit && editingPass ? editingPass.createdAt : nowIso,
       updatedAt: nowIso,
       syncedToCloud: navigator.onLine,
-      approvalStatus: (isFullAuthority || (isApproved && isVillageConfigured))
-        ? 'live'
-        : isEdit && editingPass?.approvalStatus
-        ? editingPass.approvalStatus
-        : 'pending_approval',
+      approvalStatus: 'live',
     };
 
     let updatedList: LandPass[];
@@ -905,10 +904,11 @@ export default function App() {
     }
   };
 
-  const handleDeleteHousehold = async (household: HouseholdFamily) => {
-    if (!window.confirm(`Are you sure you want to permanently delete Family ID ${household.familyId} (${household.headOfFamily})?`)) {
-      return;
-    }
+  const handleDeleteHousehold = (household: HouseholdFamily) => {
+    setHouseholdToDeleteForWarning(household);
+  };
+
+  const handleConfirmDeleteHousehold = async (household: HouseholdFamily) => {
     try {
       await deleteHouseholdRecord(household.id);
       setHouseholds((prev) => prev.filter((h) => h.id !== household.id));
@@ -922,9 +922,11 @@ export default function App() {
       );
 
       showNotification(`Family ID ${household.familyId} deleted.`, 'info');
+      setHouseholdToDeleteForWarning(null);
     } catch (err: any) {
       console.error('Delete household error:', err);
       showNotification(`Error deleting household: ${err?.message || err}`, 'warn');
+      setHouseholdToDeleteForWarning(null);
     }
   };
 
@@ -958,10 +960,11 @@ export default function App() {
     }
   };
 
-  const handleDeleteTaxRecord = async (tax: PropertyTaxRecord) => {
-    if (!window.confirm(`Are you sure you want to delete Tax Invoice ${tax.taxInvoiceNumber} for ${tax.householdHeadName}?`)) {
-      return;
-    }
+  const handleDeleteTaxRecord = (tax: PropertyTaxRecord) => {
+    setTaxToDeleteForWarning(tax);
+  };
+
+  const handleConfirmDeleteTaxRecord = async (tax: PropertyTaxRecord) => {
     try {
       await deleteTaxRecord(tax.id);
       setTaxRecords((prev) => prev.filter((t) => t.id !== tax.id));
@@ -975,9 +978,11 @@ export default function App() {
       );
 
       showNotification(`Tax invoice ${tax.taxInvoiceNumber} deleted.`, 'info');
+      setTaxToDeleteForWarning(null);
     } catch (err: any) {
       console.error('Delete tax error:', err);
       showNotification(`Error deleting tax invoice: ${err?.message || err}`, 'warn');
+      setTaxToDeleteForWarning(null);
     }
   };
 
@@ -985,7 +990,7 @@ export default function App() {
   const handleTransferToRTDB = async () => {
     showNotification('Transferring all data to Firebase Realtime Database...', 'info');
     try {
-      const result = await transferAllDataToRTDB(passes, villages, usersList);
+      const result = await transferAllDataToRTDB(passes, villages, usersList, undefined, households, taxRecords);
       if (result.success) {
         showNotification(result.message, 'success');
       } else {
@@ -1725,6 +1730,36 @@ export default function App() {
         pass={passToDeleteForWarning}
         onClose={() => setPassToDeleteForWarning(null)}
         onConfirmDelete={handleConfirmDeletePass}
+      />
+
+      {/* 11b. Delete Household Family Warning Dialogue Box */}
+      <DeleteWarningModal
+        isOpen={!!householdToDeleteForWarning}
+        title="Delete Household Family Record"
+        itemIdentifier={householdToDeleteForWarning ? `${householdToDeleteForWarning.familyId} (${householdToDeleteForWarning.headOfFamily})` : ''}
+        description="Are you sure you want to delete this Household Family ID record and its census details from the Village Council registry?"
+        confirmButtonText="Delete Family ID"
+        onConfirm={() => {
+          if (householdToDeleteForWarning) {
+            handleConfirmDeleteHousehold(householdToDeleteForWarning);
+          }
+        }}
+        onCancel={() => setHouseholdToDeleteForWarning(null)}
+      />
+
+      {/* 11c. Delete Property Tax Invoice Warning Dialogue Box */}
+      <DeleteWarningModal
+        isOpen={!!taxToDeleteForWarning}
+        title="Delete Property Tax Invoice Record"
+        itemIdentifier={taxToDeleteForWarning ? `${taxToDeleteForWarning.taxInvoiceNumber} - ${taxToDeleteForWarning.householdHeadName} (₹${taxToDeleteForWarning.totalPayableAmount})` : ''}
+        description="Are you sure you want to delete this Property Tax Invoice & Payment record from the Village Council registry?"
+        confirmButtonText="Delete Tax Invoice"
+        onConfirm={() => {
+          if (taxToDeleteForWarning) {
+            handleConfirmDeleteTaxRecord(taxToDeleteForWarning);
+          }
+        }}
+        onCancel={() => setTaxToDeleteForWarning(null)}
       />
 
       {/* 12. App Chungchang (Mizo Guide) Modal */}

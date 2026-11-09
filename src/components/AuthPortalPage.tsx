@@ -1206,8 +1206,9 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                         });
                       } catch {}
                     } else {
-                      await navigator.clipboard.writeText(shareText);
-                      alert('Document link & details copied to clipboard!');
+                      try {
+                        await navigator.clipboard.writeText(shareText);
+                      } catch {}
                     }
                   }}
                   className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-neutral-300 cursor-pointer shadow-2xs"
@@ -1254,11 +1255,11 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                   <span>A Bulpui &amp; Tum Tlangpui (Overview &amp; Purpose)</span>
                 </h3>
                 <p>
-                  He application hi <strong>Mizoram Village Council (V/C)</strong> te tana bika buatsaih, <strong>Huan Ram leh In Hmun Land Pass</strong> felfai, rintlak leh changkang taka enkawl, chhuah, leh chhinchhiahna (Digital Land Registry System) a ni. Hmanlai lehkha bu hlui, chhia leh boral thei laka fihlimin, khawtlang rorelna leh ram pek chungchang rintlak leh zahawm taka digital hmanga kumhlun vawn thatna hmanrua a ni.
+                  He application hi <strong>Mizoram Village Council (V/C)</strong> te tana bika buatsaih, <strong>Huan Ram leh In Hmun Land Pass</strong> leh <strong>Property Tax Management System (PTMS) &amp; Household Family ID</strong> felfai, rintlak leh changkang taka enkawl, chhuah, leh chhinchhiahna a ni. Hmanlai lehkha bu hlui, chhia leh boral thei laka fihlimin, khawtlang rorelna, chhungkaw census, leh ram pek chungchang rintlak leh zahawm taka digital hmanga kumhlun vawn thatna a ni.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
                 <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
                   <span className="font-bold text-neutral-900 text-xs sm:text-sm block">1. Huan Ram &amp; In Hmun Pass</span>
                   <p className="text-xs text-neutral-600">
@@ -1281,9 +1282,23 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                 </div>
 
                 <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
-                  <span className="font-bold text-neutral-900 text-xs sm:text-sm block">4. QR Code &amp; Cloud Sync</span>
+                  <span className="font-bold text-neutral-900 text-xs sm:text-sm block">4. Household Family ID System</span>
                   <p className="text-xs text-neutral-600">
-                    Smartphone-in QR Code scan-in a finfiah theih a. Offline-first leh Realtime Firebase Cloud database-ah background-ah amahin a in-sync nghal zel a ni.
+                    Khaw chhungkaw tin tan Council Official Family ID (0001 aṭanga indawt thlap) siamin, chhungkaw lu leh member census chhinchhiahna leh Land Pass search &amp; link kawp theihna a ni.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
+                  <span className="font-bold text-neutral-900 text-xs sm:text-sm block">5. Property Tax &amp; A5 Receipts</span>
+                  <p className="text-xs text-neutral-600">
+                    Kum tina Property Tax, Sanitation Cess, leh Civic fees auto-calculate thlapin invoice a siam a, A5 size Official Receipt mawi tak chhut chhuah theihna a ni.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
+                  <span className="font-bold text-neutral-900 text-xs sm:text-sm block">6. QR Code &amp; Cloud Sync</span>
+                  <p className="text-xs text-neutral-600">
+                    Smartphone-in QR Code scan-in a finfiah theih a. Offline-first leh Realtime Firebase Cloud database-ah background-ah amahin a in-sync reng a ni.
                   </p>
                 </div>
               </div>
@@ -1293,9 +1308,10 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                   Mizoram Khawtlang Tana A Hlawkna
                 </span>
                 <ul className="space-y-1.5 text-xs text-neutral-700 list-disc list-inside">
-                  <li>Village Council term a inthlak pawhin khaw ram pass record a bo ngai tawh lo.</li>
+                  <li>Village Council term a inthlak pawhin khaw ram pass leh chhiah record a bo ngai tawh lo.</li>
                   <li>GPS Coordinates leh Ramri Grid felfai tak avangin ramri innek buaina a veng.</li>
-                  <li>Khawtual mipuite tan bank leh hmun dangah pawh zahawm taka phawrh ngam pass a ni.</li>
+                  <li>Chhungkaw census leh Property Tax fel takin Village Council Office-in a enkawl thei.</li>
+                  <li>Khawtual mipuite tan bank leh hmun dangah pawh zahawm taka phawrh ngam pass leh A5 tax receipt a ni.</li>
                   <li>Secretary in-register thar te tan One-time Lifetime Fee ₹299 chauh a ni.</li>
                 </ul>
               </div>

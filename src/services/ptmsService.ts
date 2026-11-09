@@ -324,17 +324,27 @@ export function generateNextFamilyId(
 ): string {
   const cleanPrefix = (prefix || 'VC-FAM-').trim();
   
-  // Find highest current sequence number with this prefix
-  let maxSeq = startNumber - 1;
+  // Find highest current sequence number (starts from 0 so first ID is 0001)
+  let maxSeq = Math.max(0, startNumber - 1);
   const escapedPrefix = cleanPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`^${escapedPrefix}(\\d+)$`, 'i');
+  const anyTrailingNumRegex = /(\\d+)$/;
 
   existingHouseholds.forEach((h) => {
-    const match = h.familyId?.match(regex);
+    if (!h.familyId) return;
+    const match = h.familyId.match(regex);
     if (match && match[1]) {
       const num = parseInt(match[1], 10);
       if (!isNaN(num) && num > maxSeq) {
         maxSeq = num;
+      }
+    } else {
+      const trailingMatch = h.familyId.match(anyTrailingNumRegex);
+      if (trailingMatch && trailingMatch[1]) {
+        const num = parseInt(trailingMatch[1], 10);
+        if (!isNaN(num) && num > maxSeq) {
+          maxSeq = num;
+        }
       }
     }
   });

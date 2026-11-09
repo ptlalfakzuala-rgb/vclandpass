@@ -306,8 +306,8 @@ export const DocumentScannerModal: React.FC<DocumentScannerModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size exceeds 5MB. Please choose a smaller scanned image.');
+    if (file.size > 10 * 1024 * 1024) {
+      console.warn('File size exceeds 10MB.');
       return;
     }
 
@@ -322,27 +322,53 @@ export const DocumentScannerModal: React.FC<DocumentScannerModalProps> = ({
   const handleAttachScannedDocument = () => {
     if (!scannedImage) return;
 
-    // Apply any rotation or filters to final canvas
-    const img = new Image();
-    img.onload = () => {
-      const finalCanvas = document.createElement('canvas');
-      const isRotated = rotation === 90 || rotation === 270;
-      finalCanvas.width = isRotated ? img.height : img.width;
-      finalCanvas.height = isRotated ? img.width : img.height;
-      const ctx = finalCanvas.getContext('2d');
-      if (!ctx) return;
+    const fileName = `Scanned_NOC_${villageName.replace(/\s+/g, '_')}_${Date.now().toString().slice(-4)}.png`;
 
-      ctx.filter = `contrast(${contrastBoost}%) brightness(${brightness}%)`;
-      ctx.translate(finalCanvas.width / 2, finalCanvas.height / 2);
-      ctx.rotate((rotation * Math.PI) / 180);
-      ctx.drawImage(img, -img.width / 2, -img.height / 2);
-
-      const finalDataUrl = finalCanvas.toDataURL('image/png', 0.92);
-      const fileName = `Scanned_NOC_${villageName.replace(/\s+/g, '_')}_${Date.now().toString().slice(-4)}.png`;
-      onScanComplete(finalDataUrl, fileName);
+    // Fast path: if no manual adjustments were made, attach immediately
+    if (rotation === 0 && contrastBoost === 105 && brightness === 100) {
+      onScanComplete(scannedImage, fileName);
       onClose();
-    };
-    img.src = scannedImage;
+      return;
+    }
+
+    // Apply any rotation or filters to canvas
+    try {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const finalCanvas = document.createElement('canvas');
+          const isRotated = rotation === 90 || rotation === 270;
+          finalCanvas.width = isRotated ? img.height : img.width;
+          finalCanvas.height = isRotated ? img.width : img.height;
+          const ctx = finalCanvas.getContext('2d');
+          if (!ctx) {
+            onScanComplete(scannedImage, fileName);
+            onClose();
+            return;
+          }
+
+          ctx.filter = `contrast(${contrastBoost}%) brightness(${brightness}%)`;
+          ctx.translate(finalCanvas.width / 2, finalCanvas.height / 2);
+          ctx.rotate((rotation * Math.PI) / 180);
+          ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+          const finalDataUrl = finalCanvas.toDataURL('image/png', 0.92);
+          onScanComplete(finalDataUrl, fileName);
+          onClose();
+        } catch {
+          onScanComplete(scannedImage, fileName);
+          onClose();
+        }
+      };
+      img.onerror = () => {
+        onScanComplete(scannedImage, fileName);
+        onClose();
+      };
+      img.src = scannedImage;
+    } catch {
+      onScanComplete(scannedImage, fileName);
+      onClose();
+    }
   };
 
   if (!isOpen) return null;
