@@ -175,7 +175,7 @@ export async function saveVillageConfig(config: VillageConfig): Promise<void> {
   }
 
   try {
-    await saveVillageToRTDB(cleaned);
+    saveVillageToRTDB(cleaned);
   } catch (e) {
     console.warn('Could not save village config to RTDB:', e);
   }

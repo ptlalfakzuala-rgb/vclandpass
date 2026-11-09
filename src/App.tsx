@@ -282,13 +282,6 @@ export default function App() {
       });
     });
 
-    // Auto-store/transfer all database state to Firebase Realtime Database
-    if (navigator.onLine) {
-      setTimeout(() => {
-        transferAllDataToRTDB().catch(() => {});
-      }, 1500);
-    }
-
     // Network status listener
     const handleOnline = () => {
       setSyncStatus('syncing');
@@ -309,9 +302,12 @@ export default function App() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Live Snapshot Listeners for passes and users (Firestore + Firebase Realtime Database)
+    // Live Snapshot Listeners for all collections (Firestore + Firebase Realtime Database)
     let unsubscribeFirestorePasses: (() => void) | null = null;
     let unsubscribeFirestoreUsers: (() => void) | null = null;
+    let unsubscribeFirestoreHouseholds: (() => void) | null = null;
+    let unsubscribeFirestoreTaxes: (() => void) | null = null;
+    let unsubscribeFirestoreVillages: (() => void) | null = null;
     let unsubscribeRTDBPasses: (() => void) | null = null;
     let unsubscribeRTDBUsers: (() => void) | null = null;
     let unsubscribeRTDBVillages: (() => void) | null = null;
@@ -319,7 +315,7 @@ export default function App() {
     let unsubscribeRTDBTaxRecords: (() => void) | null = null;
 
     if (navigator.onLine) {
-      // 1. Firebase Realtime Database Live Listeners
+      // 1. Firebase Realtime Database Live Listeners (Non-blocking fallback)
       try {
         unsubscribeRTDBPasses = subscribeToRTDBPasses((livePasses) => {
           if (livePasses && livePasses.length > 0) {
@@ -388,26 +384,26 @@ export default function App() {
           }
         });
       } catch (err) {
-        console.warn('Realtime Database listener init:', err);
+        console.warn('Realtime Database listener notice:', err);
       }
 
-      // 2. Firestore Snapshot Listeners
+      // 2. Primary Firestore Realtime Snapshot Listeners (Instant live sync across all tabs and devices)
       try {
         const passesCol = collection(db, 'land_passes');
         unsubscribeFirestorePasses = onSnapshot(
           passesCol,
           (snapshot) => {
-            if (!snapshot.empty) {
-              const livePasses: LandPass[] = [];
-              snapshot.forEach((d) => {
-                livePasses.push(d.data() as LandPass);
-              });
+            const livePasses: LandPass[] = [];
+            snapshot.forEach((d) => {
+              livePasses.push(d.data() as LandPass);
+            });
+            if (livePasses.length > 0 || !snapshot.empty) {
               setPasses(livePasses);
               setCachedPasses(livePasses);
             }
           },
           (err) => {
-            console.warn('Firestore snapshot error (using local cache):', err);
+            console.warn('Firestore passes snapshot error:', err);
           }
         );
 
@@ -422,7 +418,6 @@ export default function App() {
             setUsersList(liveUsers);
             setCachedUsers(liveUsers);
 
-            // Auto sync: check if the logged in user or stored user was updated in cloud (e.g. approved by Authority!)
             let storedUser: UserProfile | null = null;
             try {
               const raw = localStorage.getItem('mizoram_vc_current_user');
@@ -458,19 +453,76 @@ export default function App() {
             console.warn('Users realtime snapshot error:', err);
           }
         );
+
+        const householdsCol = collection(db, 'households');
+        unsubscribeFirestoreHouseholds = onSnapshot(
+          householdsCol,
+          (snapshot) => {
+            const liveHouseholds: HouseholdFamily[] = [];
+            snapshot.forEach((d) => {
+              liveHouseholds.push(d.data() as HouseholdFamily);
+            });
+            if (liveHouseholds.length > 0 || !snapshot.empty) {
+              setHouseholds(liveHouseholds);
+              setCachedHouseholds(liveHouseholds);
+            }
+          },
+          (err) => {
+            console.warn('Firestore households snapshot error:', err);
+          }
+        );
+
+        const taxesCol = collection(db, 'property_taxes');
+        unsubscribeFirestoreTaxes = onSnapshot(
+          taxesCol,
+          (snapshot) => {
+            const liveTaxes: PropertyTaxRecord[] = [];
+            snapshot.forEach((d) => {
+              liveTaxes.push(d.data() as PropertyTaxRecord);
+            });
+            if (liveTaxes.length > 0 || !snapshot.empty) {
+              setTaxRecords(liveTaxes);
+              setCachedTaxRecords(liveTaxes);
+            }
+          },
+          (err) => {
+            console.warn('Firestore property taxes snapshot error:', err);
+          }
+        );
+
+        const villagesCol = collection(db, 'villages');
+        unsubscribeFirestoreVillages = onSnapshot(
+          villagesCol,
+          (snapshot) => {
+            const liveVillages: VillageConfig[] = [];
+            snapshot.forEach((d) => {
+              liveVillages.push(d.data() as VillageConfig);
+            });
+            if (liveVillages.length > 0) {
+              setVillages(liveVillages);
+              setCachedVillages(liveVillages);
+            }
+          },
+          (err) => {
+            console.warn('Firestore villages snapshot error:', err);
+          }
+        );
       } catch (e) {
-        console.warn('Could not attach Firestore listener:', e);
+        console.warn('Could not attach Firestore listeners:', e);
       }
     }
 
     return () => {
+      if (unsubscribeFirestorePasses) unsubscribeFirestorePasses();
+      if (unsubscribeFirestoreUsers) unsubscribeFirestoreUsers();
+      if (unsubscribeFirestoreHouseholds) unsubscribeFirestoreHouseholds();
+      if (unsubscribeFirestoreTaxes) unsubscribeFirestoreTaxes();
+      if (unsubscribeFirestoreVillages) unsubscribeFirestoreVillages();
       if (unsubscribeRTDBPasses) unsubscribeRTDBPasses();
       if (unsubscribeRTDBUsers) unsubscribeRTDBUsers();
       if (unsubscribeRTDBVillages) unsubscribeRTDBVillages();
       if (unsubscribeRTDBHouseholds) unsubscribeRTDBHouseholds();
       if (unsubscribeRTDBTaxRecords) unsubscribeRTDBTaxRecords();
-      if (unsubscribeFirestorePasses) unsubscribeFirestorePasses();
-      if (unsubscribeFirestoreUsers) unsubscribeFirestoreUsers();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -780,9 +832,9 @@ export default function App() {
       setPendingSyncCount((prev) => prev + 1);
     }
 
-    // Always mirror to Firebase Realtime Database
+    // Broadcast to Firebase Realtime Database in background
     try {
-      await savePassToRTDB(cleanedPass);
+      savePassToRTDB(cleanedPass);
     } catch (e) {
       console.warn('Realtime Database pass write:', e);
     }
@@ -850,7 +902,7 @@ export default function App() {
     }
 
     try {
-      await deletePassFromRTDB(passToDelete.id);
+      deletePassFromRTDB(passToDelete.id);
     } catch (e) {
       console.warn('Realtime Database pass delete:', e);
     }

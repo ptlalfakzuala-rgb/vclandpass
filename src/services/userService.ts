@@ -85,7 +85,7 @@ export async function saveOrUpdateUser(user: UserProfile): Promise<void> {
     try {
       const payload = cleanForFirestore(user);
       await setDoc(doc(db, 'users', user.uid), payload, { merge: true });
-      await saveUserToRTDB(payload);
+      saveUserToRTDB(payload);
     } catch (e) {
       console.error('Failed to save user to cloud:', e);
     }
@@ -141,7 +141,7 @@ export async function updateUserStatus(
       const payload = cleanForFirestore(updatedUser);
       await setDoc(doc(db, 'users', uid), payload, { merge: true });
       try {
-        await saveUserToRTDB(payload);
+        saveUserToRTDB(payload);
       } catch (err) {
         console.warn('Realtime Database write user error:', err);
       }
@@ -309,7 +309,7 @@ export async function deleteUser(uid: string): Promise<boolean> {
         console.warn('Failed to delete user doc in Firestore:', e);
       }
       try {
-        await deleteUserFromRTDB(uid);
+        deleteUserFromRTDB(uid);
       } catch (e) {
         console.warn('Failed to delete user from RTDB:', e);
       }

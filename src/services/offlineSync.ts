@@ -244,7 +244,7 @@ export async function syncOfflineQueueToFirestore(): Promise<number> {
         await setDoc(passDocRef, cleaned);
         try {
           const { savePassToRTDB } = await import('./realtimeSync');
-          await savePassToRTDB(cleaned);
+          savePassToRTDB(cleaned);
         } catch {}
         processedCount++;
       } else if (item.type === 'DELETE') {
@@ -252,7 +252,7 @@ export async function syncOfflineQueueToFirestore(): Promise<number> {
         await deleteDoc(passDocRef);
         try {
           const { deletePassFromRTDB } = await import('./realtimeSync');
-          await deletePassFromRTDB(item.pass.id);
+          deletePassFromRTDB(item.pass.id);
         } catch {}
         processedCount++;
       }

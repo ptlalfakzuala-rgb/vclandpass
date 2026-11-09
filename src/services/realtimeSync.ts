@@ -25,13 +25,19 @@ function cleanForRTDB(obj: any): any {
 // REALTIME DATABASE WRITES
 // =========================================================================
 
+// Helper to execute RTDB write without blocking or hanging on downgraded instances
+function nonBlockingRTDB(op: Promise<any>): void {
+  const timeout = new Promise<void>((resolve) => setTimeout(resolve, 800));
+  Promise.race([op, timeout]).catch(() => {});
+}
+
 export async function saveUserToRTDB(user: UserProfile): Promise<void> {
   if (!rtdb) return;
   try {
     const userRef = ref(rtdb, `users/${user.uid}`);
-    await set(userRef, cleanForRTDB(user));
+    nonBlockingRTDB(set(userRef, cleanForRTDB(user)));
   } catch (err) {
-    console.warn('Realtime Database write user error:', err);
+    console.warn('Realtime Database write user notice:', err);
   }
 }
 
@@ -39,9 +45,9 @@ export async function deleteUserFromRTDB(uid: string): Promise<void> {
   if (!rtdb) return;
   try {
     const userRef = ref(rtdb, `users/${uid}`);
-    await remove(userRef);
+    nonBlockingRTDB(remove(userRef));
   } catch (err) {
-    console.warn('Realtime Database remove user error:', err);
+    console.warn('Realtime Database remove user notice:', err);
   }
 }
 
@@ -49,9 +55,9 @@ export async function savePassToRTDB(pass: LandPass): Promise<void> {
   if (!rtdb) return;
   try {
     const passRef = ref(rtdb, `land_passes/${pass.id}`);
-    await set(passRef, cleanForRTDB(pass));
+    nonBlockingRTDB(set(passRef, cleanForRTDB(pass)));
   } catch (err) {
-    console.warn('Realtime Database write land pass error:', err);
+    console.warn('Realtime Database write land pass notice:', err);
   }
 }
 
@@ -59,9 +65,9 @@ export async function deletePassFromRTDB(passId: string): Promise<void> {
   if (!rtdb) return;
   try {
     const passRef = ref(rtdb, `land_passes/${passId}`);
-    await remove(passRef);
+    nonBlockingRTDB(remove(passRef));
   } catch (err) {
-    console.warn('Realtime Database remove land pass error:', err);
+    console.warn('Realtime Database remove land pass notice:', err);
   }
 }
 
@@ -69,9 +75,9 @@ export async function saveVillageToRTDB(village: VillageConfig): Promise<void> {
   if (!rtdb) return;
   try {
     const villageRef = ref(rtdb, `villages/${village.id}`);
-    await set(villageRef, cleanForRTDB(village));
+    nonBlockingRTDB(set(villageRef, cleanForRTDB(village)));
   } catch (err) {
-    console.warn('Realtime Database write village error:', err);
+    console.warn('Realtime Database write village notice:', err);
   }
 }
 
@@ -79,9 +85,9 @@ export async function saveAuditLogToRTDB(log: AuditLog): Promise<void> {
   if (!rtdb) return;
   try {
     const logRef = ref(rtdb, `audit_logs/${log.id}`);
-    await set(logRef, cleanForRTDB(log));
+    nonBlockingRTDB(set(logRef, cleanForRTDB(log)));
   } catch (err) {
-    console.warn('Realtime Database write audit log error:', err);
+    console.warn('Realtime Database write audit log notice:', err);
   }
 }
 
@@ -314,7 +320,7 @@ export async function transferAllDataToRTDB(
     for (const h of householdsToTransfer) {
       if (h && h.id) {
         const rtdbRef = ref(rtdb, `households/${h.id}`);
-        await set(rtdbRef, cleanForRTDB(h));
+        nonBlockingRTDB(set(rtdbRef, cleanForRTDB(h)));
         result.households++;
       }
     }
@@ -332,7 +338,7 @@ export async function transferAllDataToRTDB(
     for (const t of taxesToTransfer) {
       if (t && t.id) {
         const rtdbRef = ref(rtdb, `property_taxes/${t.id}`);
-        await set(rtdbRef, cleanForRTDB(t));
+        nonBlockingRTDB(set(rtdbRef, cleanForRTDB(t)));
         result.propertyTaxes++;
       }
     }

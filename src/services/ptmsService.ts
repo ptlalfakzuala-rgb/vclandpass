@@ -30,6 +30,12 @@ function cleanForRTDB(obj: any): any {
   return out;
 }
 
+// Helper to execute RTDB write without blocking on downgraded instances
+function nonBlockingRTDB(op: Promise<any>): void {
+  const timeout = new Promise<void>((resolve) => setTimeout(resolve, 800));
+  Promise.race([op, timeout]).catch(() => {});
+}
+
 // =========================================================================
 // HOUSEHOLD / FAMILY ID CRUD & OFFLINE CACHE
 // =========================================================================
@@ -108,13 +114,13 @@ export async function saveHouseholdRecord(household: HouseholdFamily): Promise<H
     }
   }
 
-  // 3. Write to RTDB for silent realtime broadcast
+  // 3. Write to RTDB for silent realtime broadcast (non-blocking)
   if (rtdb) {
     try {
       const rtdbRef = ref(rtdb, `households/${itemToSave.id}`);
-      await set(rtdbRef, cleanForRTDB(itemToSave));
+      nonBlockingRTDB(set(rtdbRef, cleanForRTDB(itemToSave)));
     } catch (err) {
-      console.warn('Error saving household to RTDB:', err);
+      console.warn('Notice saving household to RTDB:', err);
     }
   }
 
@@ -136,12 +142,12 @@ export async function deleteHouseholdRecord(householdId: string): Promise<void> 
     }
   }
 
-  // 3. Delete from RTDB
+  // 3. Delete from RTDB (non-blocking)
   if (rtdb) {
     try {
-      await remove(ref(rtdb, `households/${householdId}`));
+      nonBlockingRTDB(remove(ref(rtdb, `households/${householdId}`)));
     } catch (err) {
-      console.warn('Error deleting household from RTDB:', err);
+      console.warn('Notice deleting household from RTDB:', err);
     }
   }
 }
@@ -223,13 +229,13 @@ export async function saveTaxRecord(tax: PropertyTaxRecord): Promise<PropertyTax
     }
   }
 
-  // 3. Write to RTDB
+  // 3. Write to RTDB (non-blocking)
   if (rtdb) {
     try {
       const rtdbRef = ref(rtdb, `property_taxes/${itemToSave.id}`);
-      await set(rtdbRef, cleanForRTDB(itemToSave));
+      nonBlockingRTDB(set(rtdbRef, cleanForRTDB(itemToSave)));
     } catch (err) {
-      console.warn('Error saving property tax to RTDB:', err);
+      console.warn('Notice saving property tax to RTDB:', err);
     }
   }
 
@@ -251,12 +257,12 @@ export async function deleteTaxRecord(taxId: string): Promise<void> {
     }
   }
 
-  // 3. Delete from RTDB
+  // 3. Delete from RTDB (non-blocking)
   if (rtdb) {
     try {
-      await remove(ref(rtdb, `property_taxes/${taxId}`));
+      nonBlockingRTDB(remove(ref(rtdb, `property_taxes/${taxId}`)));
     } catch (err) {
-      console.warn('Error deleting property tax from RTDB:', err);
+      console.warn('Notice deleting property tax from RTDB:', err);
     }
   }
 }
