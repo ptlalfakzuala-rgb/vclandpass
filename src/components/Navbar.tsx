@@ -182,7 +182,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 onClick={onOpenAbout}
                 className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-emerald-200 shadow-2xs cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs active:translate-y-0 active:scale-95 group"
-                title="App Chungchang (Land Passes Registry & PTMS Family ID System)"
+                title="App Chungchang (LPRMS & PTMS - Cloud-Based Secure Data)"
               >
                 <BookOpen className="w-3.5 h-3.5 text-emerald-700 transition-transform duration-200 group-hover:scale-110" />
                 <span className="hidden md:inline">App Chungchang</span>

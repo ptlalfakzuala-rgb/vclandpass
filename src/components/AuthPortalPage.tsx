@@ -35,7 +35,9 @@ import {
   Users2,
   Receipt,
   Settings,
-  Database
+  Database,
+  Lock,
+  Cloud
 } from 'lucide-react';
 import { authenticateSecretary, saveOrUpdateUser } from '../services/userService';
 import { logActivity } from '../services/auditLogger';
@@ -1173,7 +1175,7 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
         )}
 
         {/* ============================================================== */}
-        {/* TAB 4: APP CHUNGCHANG (2 CORE TOPICS)                          */}
+        {/* TAB 4: APP CHUNGCHANG (LPRMS, PTMS & CLOUD SECURE DATA)        */}
         {/* ============================================================== */}
         {activeTab === 'about' && (
           <div className="bg-white rounded-3xl border border-neutral-200/90 p-6 sm:p-10 shadow-lg max-w-3xl mx-auto w-full text-neutral-900 space-y-6">
@@ -1183,10 +1185,10 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
               </div>
               <div>
                 <h2 className="text-xl sm:text-2xl font-serif font-black text-neutral-900">
-                  Mizoram Village Council App Chungchang
+                  App Chungchang (LPRMS &amp; PTMS)
                 </h2>
                 <p className="text-xs text-neutral-500">
-                  Land Passes Registry Management &bull; Property Tax Management &amp; Family ID System
+                  Land Passes Registry Management System (LPRMS) &bull; Property Tax Management System (PTMS) &bull; Cloud-Based Secure Data
                 </p>
               </div>
             </div>
@@ -1198,94 +1200,102 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                 <span>HRIATTIRNA PAWIMAWH : Sorkar Thuchhuah / Sorkar App A Ni Lo</span>
               </div>
               <p className="text-xs text-amber-900 leading-relaxed font-medium">
-                He application hi Mizoram Sorkar siam emaw tihchhuah a ni lo va (non-government independent software). Village Council hrang hrang ten mahni khua leh bial chhunga ram pass leh chhiah record fel tak leh him taka an enkawl theih nana buatsaih a ni.
+                He application hi Mizoram Sorkar siam emaw tihchhuah a ni lo va (non-government independent software). Village Council leh khawtlang enkawltute tan mahni khaw chhung ram pass leh chhiah record him tak, felfai tak, leh cloud-a kumhlun vawn theih nana siam a ni.
               </p>
             </div>
 
             <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-1.5 text-xs sm:text-sm text-neutral-700 leading-relaxed">
               <h3 className="font-bold text-emerald-950 text-sm flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-700" />
-                <span>Thupui Lian Pahnih (2 Core Systems)</span>
+                <span>Khawtlang Digital Record &amp; Cloud-Based Secure Data</span>
               </h3>
               <p>
-                He digital management system hian khawtlang inrelbawlna pui ber pahnih — <strong>1. Land Passes Registry Management</strong> leh <strong>2. Property Tax Management &amp; Family ID System</strong> — te a keng tel a. User tin leh Village Council tin tan mahni database hrang zel (isolated) neiin, Firebase Cloud-ah him takin a in-sync reng a ni.
+                He platform hian khawtlang record vawnna pui ber pahnih — <strong>1. Land Passes Registry Management System (LPRMS)</strong> leh <strong>2. Property Tax Management System (PTMS)</strong> — te a keng tel a. <strong>Cloud-Based Secure Data</strong> architecture hmangin user leh Village Council tin tan database hrang vekah him takin data a vawng ṭha reng a ni.
               </p>
             </div>
 
-            {/* Topic 1: Land Passes Registry Management */}
-            <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-5 space-y-3">
+            {/* Topic 1: Land Passes Registry Management System (LPRMS) */}
+            <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-5 space-y-3.5">
               <div className="flex items-center justify-between border-b border-emerald-200 pb-2.5 flex-wrap gap-2">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-lg bg-emerald-700 text-white font-black text-xs flex items-center justify-center">
                     1
                   </span>
                   <h3 className="font-serif font-black text-base text-emerald-950">
-                    Topic 1: Land Passes Registry Management
+                    Topic 1: Land Passes Registry Management System (LPRMS)
                   </h3>
                 </div>
                 <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
-                  Huan Ram &amp; In Hmun
+                  LPRMS
                 </span>
               </div>
+
+              <p className="text-xs text-neutral-700 leading-relaxed">
+                <strong>LPRMS</strong> hi khaw chhunga <em>Huan Ram (Agricultural)</em> leh <em>In Hmun (Residential)</em> Land Pass zawng zawng digital-a issue, enkawl, leh finfiahna system kimchang a ni.
+              </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="p-3 bg-white rounded-xl border border-emerald-200/80 space-y-1">
                   <span className="font-bold text-neutral-900 flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>Huan Ram &amp; In Hmun Pass Issuance</span>
+                    <span>Pass Issuance &amp; Auto-Sequential Numbering</span>
                   </span>
-                  <p className="text-neutral-600">
-                    Mahni Council prefix leh starting number duhthusam hmanga auto-sequential Pass Number, ram neitu chanchin, zauhzawng, leh ramri palite (Hmar, Chhak, Thlang, Chhim) felfai taka ziah luhna.
+                  <p className="text-neutral-600 leading-relaxed">
+                    Custom Prefix leh Starting Number hmanga auto-sequential Pass Number (duplicate awm lo), ram neitu chanchin, Nu/Pa hming, Phone, zauhzawng (Bigha, Tin hmun, Sq.ft), leh Ramri palite (Hmar, Chhak, Thlang, Chhim) fel taka chhinchhiahna.
                   </p>
                 </div>
 
                 <div className="p-3 bg-white rounded-xl border border-emerald-200/80 space-y-1">
                   <span className="font-bold text-neutral-900 flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-blue-700" />
-                    <span>Google Maps GPS &amp; NOC Scanner</span>
+                    <span>Google Maps Satellite GPS &amp; NOC Scanner</span>
                   </span>
-                  <p className="text-neutral-600">
-                    Satellite/Terrain Map leh D-Pad Move Tool hmanga GPS coordinates lakna, leh NOC lehkha Camera Scanner emaw Upload Scanned File hmanga thil telna.
+                  <p className="text-neutral-600 leading-relaxed">
+                    Satellite/Terrain Map, D-Pad Move Tool (1m/10m/50m), leh device GPS sensor hmanga Latitude/Longitude dik tak lakna; NOC lehkha Camera Scanner leh Upload Scanned File hmanga thil tel nghal theihna.
                   </p>
                 </div>
 
                 <div className="p-3 bg-white rounded-xl border border-emerald-200/80 space-y-1">
                   <span className="font-bold text-neutral-900 flex items-center gap-1.5">
                     <QrCode className="w-3.5 h-3.5 text-purple-700" />
-                    <span>A4 Certificate Print &amp; QR Verification</span>
+                    <span>Official A4 Certificate &amp; QR Verification</span>
                   </span>
-                  <p className="text-neutral-600">
-                    Council Logo, President Seal space, Custom Bylaws, leh QR Code nen A4 Certificate print theihna; phone camera-a scan-in pass dik leh dik loh a finfiah nghal theih.
+                  <p className="text-neutral-600 leading-relaxed">
+                    Council Logo, 2x2 Ramri Grid, President Seal hmun, leh Custom Bylaws (Phek 2) nen A4 Certificate print theihna; QR Code phone camera-a scan-in pass dik leh dik loh second reilotêah a finfiah nghal.
                   </p>
                 </div>
 
                 <div className="p-3 bg-white rounded-xl border border-emerald-200/80 space-y-1">
                   <span className="font-bold text-neutral-900 flex items-center gap-1.5">
-                    <Database className="w-3.5 h-3.5 text-amber-700" />
-                    <span>Isolated Database &amp; Realtime Sync</span>
+                    <Cloud className="w-3.5 h-3.5 text-teal-700" />
+                    <span>Cloud-Synced Pass Registry &amp; Safe Controls</span>
                   </span>
-                  <p className="text-neutral-600">
-                    User/Council tin tana database hrang, offline-first cache, leh Firebase Realtime Database &amp; Firestore-a background live auto-sync.
+                  <p className="text-neutral-600 leading-relaxed">
+                    Pass siam thar, edit, emaw delete apiang Firebase Cloud-ah live-in a in-sync a; delete dawnah Warning Confirmation Box leh Audit Log chhinchhiahna a awm thlap.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Topic 2: Property Tax Management & Family ID System */}
-            <div className="rounded-2xl border-2 border-purple-200 bg-purple-50/40 p-5 space-y-3">
+            {/* Topic 2: Property Tax Management System (PTMS) */}
+            <div className="rounded-2xl border-2 border-purple-200 bg-purple-50/40 p-5 space-y-3.5">
               <div className="flex items-center justify-between border-b border-purple-200 pb-2.5 flex-wrap gap-2">
                 <div className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-lg bg-purple-700 text-white font-black text-xs flex items-center justify-center">
                     2
                   </span>
                   <h3 className="font-serif font-black text-base text-purple-950">
-                    Topic 2: Property Tax Management &amp; Family ID System
+                    Topic 2: Property Tax Management System (PTMS)
                   </h3>
                 </div>
                 <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-300">
-                  PTMS &amp; Census
+                  PTMS
                 </span>
               </div>
+
+              <p className="text-xs text-neutral-700 leading-relaxed">
+                <strong>PTMS</strong> hi khawtlang chhiah (Property Tax, Sanitation Cess, Civic/Water Cess) felfai taka khawn, chhinchhiah, leh chhungkaw <strong>Household Family ID</strong> census nena thlunzawmna system a ni.
+              </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="p-3 bg-white rounded-xl border border-purple-200/80 space-y-1">
@@ -1293,17 +1303,17 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                     <Users2 className="w-3.5 h-3.5 text-purple-700" />
                     <span>Household Family ID &amp; Land Pass Link</span>
                   </span>
-                  <p className="text-neutral-600">
-                    Chhungkaw tin tan Council Family ID indawt thlap siamna, chhungkaw member census, economic status (APL/BPL/AAY), leh Land Pass zawn leh thlunzawm (link) na.
+                  <p className="text-neutral-600 leading-relaxed">
+                    Chhungkaw tin tan Council Family ID indawt thlap siamna, member census, economic status (APL/BPL/AAY), leh LPRMS Land Pass zawn leh thlunzawm (link) na.
                   </p>
                 </div>
 
                 <div className="p-3 bg-white rounded-xl border border-purple-200/80 space-y-1">
                   <span className="font-bold text-neutral-900 flex items-center gap-1.5">
                     <Receipt className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>Numeric Family ID Lookup &amp; Auto-Sum Tax</span>
+                    <span>Numeric Family ID Fetch &amp; Auto-Sum Invoice</span>
                   </span>
-                  <p className="text-neutral-600">
+                  <p className="text-neutral-600 leading-relaxed">
                     Tax Invoice siamnaah Family ID number chauh (prefix tel lo) chhu luhin detail a rawn fetch a; Base Tax, Sanitation Cess, leh Civic Cess atangin Amount Collected a auto-fill nghal.
                   </p>
                 </div>
@@ -1311,20 +1321,57 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                 <div className="p-3 bg-white rounded-xl border border-purple-200/80 space-y-1">
                   <span className="font-bold text-neutral-900 flex items-center gap-1.5">
                     <Settings className="w-3.5 h-3.5 text-amber-700" />
-                    <span>Manage PTMS &amp; Family ID Settings</span>
+                    <span>Manage PTMS &amp; Family ID Configuration</span>
                   </span>
-                  <p className="text-neutral-600">
-                    Family ID prefix, Tax Invoice prefix, starting serial number, digit format, Financial Year (FY) update, due date, leh default cess rates mahni duh dana manage theihna.
+                  <p className="text-neutral-600 leading-relaxed">
+                    Family ID prefix, Tax Invoice prefix, starting serial number, digit padding, Financial Year (FY) update / Advance Next FY, due date, leh default rates mahni duh dana manage theihna.
                   </p>
                 </div>
 
                 <div className="p-3 bg-white rounded-xl border border-purple-200/80 space-y-1">
                   <span className="font-bold text-neutral-900 flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5 text-blue-700" />
-                    <span>Tax Receipts, Sort/Filter &amp; Isolation</span>
+                    <span>Official Receipts, Analytics &amp; Sorting</span>
                   </span>
-                  <p className="text-neutral-600">
-                    Official Property Tax &amp; Cess Receipt chhutna, Financial Year &amp; Sort By filter, delete warning protection, leh Council tin tana database hrang him tak.
+                  <p className="text-neutral-600 leading-relaxed">
+                    Live KPI dashboard (Assessed, Collected, Due), Financial Year &amp; Sort By filter, delete warning protection, leh Official Property Tax &amp; Cess Receipt chhutna.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Cloud-Based Secure Data Section */}
+            <div className="rounded-2xl border-2 border-teal-200 bg-teal-50/40 p-5 space-y-3">
+              <div className="flex items-center justify-between border-b border-teal-200 pb-2.5 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-teal-800" />
+                  <h3 className="font-serif font-black text-base text-teal-950">
+                    Cloud-Based Secure Data Architecture
+                  </h3>
+                </div>
+                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-teal-100 text-teal-900 border border-teal-300">
+                  AES + Firebase Cloud
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-white rounded-xl border border-teal-200/80 space-y-1">
+                  <span className="font-bold text-teal-950 flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-teal-700" />
+                    <span>Isolated Council Cloud Database</span>
+                  </span>
+                  <p className="text-neutral-600 leading-relaxed">
+                    User leh Village Council tinin mahni database hrang vek (<code>createdBy</code> &amp; <code>villageId</code> isolation) an nei a, Council dang data nen a inchawhpawlh ngai lo.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-teal-200/80 space-y-1">
+                  <span className="font-bold text-teal-950 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Dual Cloud Sync &amp; Encrypted Cache</span>
+                  </span>
+                  <p className="text-neutral-600 leading-relaxed">
+                    Firebase Cloud Firestore &amp; Realtime Database-ah live-in a in-sync reng a; internet awm loh pawhin AES Encrypted offline cache-ah him takin a vawng a, Council term inthlak pawhin data a bo ngai lo.
                   </p>
                 </div>
               </div>
