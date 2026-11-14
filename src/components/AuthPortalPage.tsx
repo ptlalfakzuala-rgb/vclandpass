@@ -31,10 +31,11 @@ import {
   Building2,
   Clock,
   BookOpen,
-  Layers,
-  Printer,
   Sparkles,
-  Share2
+  Users2,
+  Receipt,
+  Settings,
+  Database
 } from 'lucide-react';
 import { authenticateSecretary, saveOrUpdateUser } from '../services/userService';
 import { logActivity } from '../services/auditLogger';
@@ -1172,68 +1173,21 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
         )}
 
         {/* ============================================================== */}
-        {/* TAB 4: APP CHUNGCHANG (ABOUT SYSTEM IN MIZO - SHAREABLE & PDF) */}
+        {/* TAB 4: APP CHUNGCHANG (2 CORE TOPICS)                          */}
         {/* ============================================================== */}
         {activeTab === 'about' && (
           <div className="bg-white rounded-3xl border border-neutral-200/90 p-6 sm:p-10 shadow-lg max-w-3xl mx-auto w-full text-neutral-900 space-y-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between pb-4 border-b border-neutral-200 gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-emerald-100 border border-emerald-300 rounded-2xl flex items-center justify-center text-emerald-800 shadow-inner shrink-0">
-                  <BookOpen className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-serif font-black text-neutral-900">
-                    Mizoram Village Council Land Pass App Chungchang
-                  </h2>
-                  <p className="text-xs text-neutral-500">
-                    Village Council Huan Ram leh In Hmun Pass Digital Enkawlna &bull; Chipchiar Taka Hrilhfiahna
-                  </p>
-                </div>
+            <div className="flex items-center gap-3 pb-4 border-b border-neutral-200">
+              <div className="w-12 h-12 bg-emerald-100 border border-emerald-300 rounded-2xl flex items-center justify-center text-emerald-800 shadow-inner shrink-0">
+                <BookOpen className="w-6 h-6" />
               </div>
-
-              {/* Share and PDF action buttons */}
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const shareText = `Mizoram Village Council Land Pass App Chungchang:\n\nHuan Ram leh In Hmun Land Pass digital enkawlna, GPS Google Maps, A4 Print/Save PDF, leh QR Code verification nei.\n\nSupport: +91 7005504074 (ptlalfakzuala@gmail.com)\n\nEn rawh: ${window.location.origin}`;
-                    if (navigator.share) {
-                      try {
-                        await navigator.share({
-                          title: 'Mizoram VC Land Pass App Chungchang',
-                          text: shareText,
-                          url: window.location.href,
-                        });
-                      } catch {}
-                    } else {
-                      try {
-                        await navigator.clipboard.writeText(shareText);
-                      } catch {}
-                    }
-                  }}
-                  className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-neutral-300 cursor-pointer shadow-2xs"
-                  title="Share App Chungchang via WhatsApp, Social media or Copy Link"
-                >
-                  <Share2 className="w-3.5 h-3.5 text-neutral-700" />
-                  <span>Share</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    const originalTitle = document.title;
-                    document.title = 'Mizoram_Village_Council_Land_Pass_App_Chungchang.pdf';
-                    window.print();
-                    setTimeout(() => {
-                      document.title = originalTitle;
-                    }, 1000);
-                  }}
-                  className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
-                  title="Print or Save as PDF"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Save / Print PDF</span>
-                </button>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-serif font-black text-neutral-900">
+                  Mizoram Village Council App Chungchang
+                </h2>
+                <p className="text-xs text-neutral-500">
+                  Land Passes Registry Management &bull; Property Tax Management &amp; Family ID System
+                </p>
               </div>
             </div>
 
@@ -1244,81 +1198,140 @@ export const AuthPortalPage: React.FC<AuthPortalPageProps> = ({
                 <span>HRIATTIRNA PAWIMAWH : Sorkar Thuchhuah / Sorkar App A Ni Lo</span>
               </div>
               <p className="text-xs text-amber-900 leading-relaxed font-medium">
-                He application hi <strong>Mizoram Sorkar</strong> siam emaw tihchhuah a ni lo va (not government-issued). Mizoram chhunga Village Council hrang hrang ten mahni khua leh bial chhunga Huan Ram leh In Hmun pass buaipui awlsam zawk nan, ramri fel zawk nan, leh record kumhluna him taka an vawn theih nana <strong>independent digital software</strong> a siam a ni.
+                He application hi Mizoram Sorkar siam emaw tihchhuah a ni lo va (non-government independent software). Village Council hrang hrang ten mahni khua leh bial chhunga ram pass leh chhiah record fel tak leh him taka an enkawl theih nana buatsaih a ni.
               </p>
             </div>
 
-            <div className="space-y-4 text-xs sm:text-sm text-neutral-700 leading-relaxed">
-              <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2">
-                <h3 className="font-bold text-emerald-950 text-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-700" />
-                  <span>A Bulpui &amp; Tum Tlangpui (Overview &amp; Purpose)</span>
-                </h3>
-                <p>
-                  He application hi <strong>Mizoram Village Council (V/C)</strong> te tana bika buatsaih, <strong>Huan Ram leh In Hmun Land Pass</strong> leh <strong>Property Tax Management System (PTMS) &amp; Household Family ID</strong> felfai, rintlak leh changkang taka enkawl, chhuah, leh chhinchhiahna a ni. Hmanlai lehkha bu hlui, chhia leh boral thei laka fihlimin, khawtlang rorelna, chhungkaw census, leh ram pek chungchang rintlak leh zahawm taka digital hmanga kumhlun vawn thatna a ni.
-                </p>
-              </div>
+            <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-1.5 text-xs sm:text-sm text-neutral-700 leading-relaxed">
+              <h3 className="font-bold text-emerald-950 text-sm flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-700" />
+                <span>Thupui Lian Pahnih (2 Core Systems)</span>
+              </h3>
+              <p>
+                He digital management system hian khawtlang inrelbawlna pui ber pahnih — <strong>1. Land Passes Registry Management</strong> leh <strong>2. Property Tax Management &amp; Family ID System</strong> — te a keng tel a. User tin leh Village Council tin tan mahni database hrang zel (isolated) neiin, Firebase Cloud-ah him takin a in-sync reng a ni.
+              </p>
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-                <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
-                  <span className="font-bold text-neutral-900 text-xs sm:text-sm block">1. Huan Ram &amp; In Hmun Pass</span>
-                  <p className="text-xs text-neutral-600">
-                    Huan ram leh In hmun pass duhtawka thlan theih a ni a, pass number hi computer-in indawt thlapin (auto-sequential) a pe zel a, pass number in-ang a awm thei lo.
-                  </p>
+            {/* Topic 1: Land Passes Registry Management */}
+            <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 p-5 space-y-3">
+              <div className="flex items-center justify-between border-b border-emerald-200 pb-2.5 flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-7 h-7 rounded-lg bg-emerald-700 text-white font-black text-xs flex items-center justify-center">
+                    1
+                  </span>
+                  <h3 className="font-serif font-black text-base text-emerald-950">
+                    Topic 1: Land Passes Registry Management
+                  </h3>
                 </div>
-
-                <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
-                  <span className="font-bold text-neutral-900 text-xs sm:text-sm block">2. Google Maps &amp; Move Tool</span>
-                  <p className="text-xs text-neutral-600">
-                    Satellite, Terrain leh Roadmap hmangin ramri kil zawn tak zawnah Move Tool (D-pad &amp; Drag) hmangin GPS coordinates a la thei a, phone dinna GPS la nghal theih a ni.
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
-                  <span className="font-bold text-neutral-900 text-xs sm:text-sm block">3. Official A4 Certificate Print</span>
-                  <p className="text-xs text-neutral-600">
-                    Website thil dang lang lovin, Council Logo, Official Emblem, QR Code, 2x2 Boundary Grid, leh President Seal space nen A4 paper-ah mawi takin a print/save theih.
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
-                  <span className="font-bold text-neutral-900 text-xs sm:text-sm block">4. Household Family ID System</span>
-                  <p className="text-xs text-neutral-600">
-                    Khaw chhungkaw tin tan Council Official Family ID (0001 aṭanga indawt thlap) siamin, chhungkaw lu leh member census chhinchhiahna leh Land Pass search &amp; link kawp theihna a ni.
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
-                  <span className="font-bold text-neutral-900 text-xs sm:text-sm block">5. Property Tax &amp; A5 Receipts</span>
-                  <p className="text-xs text-neutral-600">
-                    Kum tina Property Tax, Sanitation Cess, leh Civic fees auto-calculate thlapin invoice a siam a, A5 size Official Receipt mawi tak chhut chhuah theihna a ni.
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200 space-y-1">
-                  <span className="font-bold text-neutral-900 text-xs sm:text-sm block">6. QR Code &amp; Cloud Sync</span>
-                  <p className="text-xs text-neutral-600">
-                    Smartphone-in QR Code scan-in a finfiah theih a. Offline-first leh Realtime Firebase Cloud database-ah background-ah amahin a in-sync reng a ni.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-200 space-y-2">
-                <span className="font-bold text-neutral-900 text-xs uppercase tracking-wider block">
-                  Mizoram Khawtlang Tana A Hlawkna
+                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
+                  Huan Ram &amp; In Hmun
                 </span>
-                <ul className="space-y-1.5 text-xs text-neutral-700 list-disc list-inside">
-                  <li>Village Council term a inthlak pawhin khaw ram pass leh chhiah record a bo ngai tawh lo.</li>
-                  <li>GPS Coordinates leh Ramri Grid felfai tak avangin ramri innek buaina a veng.</li>
-                  <li>Chhungkaw census leh Property Tax fel takin Village Council Office-in a enkawl thei.</li>
-                  <li>Khawtual mipuite tan bank leh hmun dangah pawh zahawm taka phawrh ngam pass leh A5 tax receipt a ni.</li>
-                  <li>Secretary in-register thar te tan One-time Lifetime Fee ₹299 chauh a ni.</li>
-                </ul>
               </div>
 
-              <div className="pt-2 text-center text-xs text-neutral-600 bg-neutral-50 p-3 rounded-xl border border-neutral-200">
-                Direct Authority &amp; Developer Support: <strong>ptlalfakzuala@gmail.com</strong> &bull; WhatsApp/Phone: <strong>+91 7005504074</strong>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-white rounded-xl border border-emerald-200/80 space-y-1">
+                  <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Huan Ram &amp; In Hmun Pass Issuance</span>
+                  </span>
+                  <p className="text-neutral-600">
+                    Mahni Council prefix leh starting number duhthusam hmanga auto-sequential Pass Number, ram neitu chanchin, zauhzawng, leh ramri palite (Hmar, Chhak, Thlang, Chhim) felfai taka ziah luhna.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-emerald-200/80 space-y-1">
+                  <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Google Maps GPS &amp; NOC Scanner</span>
+                  </span>
+                  <p className="text-neutral-600">
+                    Satellite/Terrain Map leh D-Pad Move Tool hmanga GPS coordinates lakna, leh NOC lehkha Camera Scanner emaw Upload Scanned File hmanga thil telna.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-emerald-200/80 space-y-1">
+                  <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                    <QrCode className="w-3.5 h-3.5 text-purple-700" />
+                    <span>A4 Certificate Print &amp; QR Verification</span>
+                  </span>
+                  <p className="text-neutral-600">
+                    Council Logo, President Seal space, Custom Bylaws, leh QR Code nen A4 Certificate print theihna; phone camera-a scan-in pass dik leh dik loh a finfiah nghal theih.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-emerald-200/80 space-y-1">
+                  <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Isolated Database &amp; Realtime Sync</span>
+                  </span>
+                  <p className="text-neutral-600">
+                    User/Council tin tana database hrang, offline-first cache, leh Firebase Realtime Database &amp; Firestore-a background live auto-sync.
+                  </p>
+                </div>
               </div>
+            </div>
+
+            {/* Topic 2: Property Tax Management & Family ID System */}
+            <div className="rounded-2xl border-2 border-purple-200 bg-purple-50/40 p-5 space-y-3">
+              <div className="flex items-center justify-between border-b border-purple-200 pb-2.5 flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-7 h-7 rounded-lg bg-purple-700 text-white font-black text-xs flex items-center justify-center">
+                    2
+                  </span>
+                  <h3 className="font-serif font-black text-base text-purple-950">
+                    Topic 2: Property Tax Management &amp; Family ID System
+                  </h3>
+                </div>
+                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-300">
+                  PTMS &amp; Census
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-white rounded-xl border border-purple-200/80 space-y-1">
+                  <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                    <Users2 className="w-3.5 h-3.5 text-purple-700" />
+                    <span>Household Family ID &amp; Land Pass Link</span>
+                  </span>
+                  <p className="text-neutral-600">
+                    Chhungkaw tin tan Council Family ID indawt thlap siamna, chhungkaw member census, economic status (APL/BPL/AAY), leh Land Pass zawn leh thlunzawm (link) na.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-purple-200/80 space-y-1">
+                  <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                    <Receipt className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Numeric Family ID Lookup &amp; Auto-Sum Tax</span>
+                  </span>
+                  <p className="text-neutral-600">
+                    Tax Invoice siamnaah Family ID number chauh (prefix tel lo) chhu luhin detail a rawn fetch a; Base Tax, Sanitation Cess, leh Civic Cess atangin Amount Collected a auto-fill nghal.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-purple-200/80 space-y-1">
+                  <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                    <Settings className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Manage PTMS &amp; Family ID Settings</span>
+                  </span>
+                  <p className="text-neutral-600">
+                    Family ID prefix, Tax Invoice prefix, starting serial number, digit format, Financial Year (FY) update, due date, leh default cess rates mahni duh dana manage theihna.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-purple-200/80 space-y-1">
+                  <span className="font-bold text-neutral-900 flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Tax Receipts, Sort/Filter &amp; Isolation</span>
+                  </span>
+                  <p className="text-neutral-600">
+                    Official Property Tax &amp; Cess Receipt chhutna, Financial Year &amp; Sort By filter, delete warning protection, leh Council tin tana database hrang him tak.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 text-center text-xs text-neutral-600 bg-neutral-50 p-3 rounded-xl border border-neutral-200">
+              Secretary Registration: One-time Lifetime Fee ₹299 &bull; Support: <strong>ptlalfakzuala@gmail.com</strong> &bull; WhatsApp/Phone: <strong>+91 7005504074</strong>
             </div>
           </div>
         )}

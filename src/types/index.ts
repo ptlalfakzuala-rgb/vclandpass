@@ -16,8 +16,14 @@ export interface VillageConfig {
   startingInHmunNumber?: number;  // Starting sequence for In Hmun
   startingFamilyNumber?: number;  // Starting sequence for Family ID (e.g. 1 or 1001)
   startingTaxInvoiceNumber?: number; // Starting sequence for Tax Invoices
+  familyIdDigits?: number; // Zero-padding digit count for Family ID & Tax Invoice serials (default 4)
+  currentTaxYear?: string; // Active Financial Year (e.g. "2026-2027")
   defaultPropertyTaxRate?: number; // Base rate per sq ft or flat per property
   defaultSanitationFee?: number;   // Village sanitation cess
+  defaultCivicFee?: number;        // Default Civic / Water cess fee
+  defaultTaxDueDate?: string;      // Default payment deadline (YYYY-MM-DD)
+  defaultPropertyCategory?: PropertyCategory; // Default property category for new invoices
+  ptmsReceiptNote?: string;        // Optional custom footer note on tax receipts
   logoUrl?: string; // Base64 or image URL of Village Council Logo (170x170 px)
   emblemLogoUrl?: string; // Base64 or image URL for State / Official Emblem in Print View
   conditionsAndTerms: string; // Customizable per village

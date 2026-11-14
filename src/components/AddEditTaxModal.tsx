@@ -107,6 +107,24 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
     return `${cleanInit}-FAM-`;
   }, [village.familyIdPrefix, village.villageName]);
 
+  const activeTaxYear = village.currentTaxYear || '2026-2027';
+  const serialDigits = village.familyIdDigits || 4;
+
+  const financialYearOptions = useMemo(() => {
+    const yrs = new Set<string>([
+      '2024-2025',
+      '2025-2026',
+      '2026-2027',
+      '2027-2028',
+      '2028-2029',
+      '2029-2030',
+      '2030-2031',
+      activeTaxYear
+    ]);
+    if (editingTax?.taxYear) yrs.add(editingTax.taxYear);
+    return Array.from(yrs).sort();
+  }, [activeTaxYear, editingTax?.taxYear]);
+
   // Helper to extract just the numeric sequence from a full Family ID (e.g. "SPH-FAM-0001" -> "0001")
   const extractFamilyNumber = (fullId: string): string => {
     const match = (fullId || '').match(/(\d+)$/);
@@ -117,7 +135,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
   const findHouseholdByNumber = (numStr: string): HouseholdFamily | undefined => {
     const cleanNum = numStr.replace(/\D/g, '');
     if (!cleanNum) return undefined;
-    const padded = cleanNum.padStart(4, '0');
+    const padded = cleanNum.padStart(serialDigits, '0');
     const numericVal = parseInt(cleanNum, 10);
 
     // 1. Exact padded or raw string match with prefix or trailing digits
@@ -142,7 +160,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
   useEffect(() => {
     if (editingTax) {
       setTaxInvoiceNumber(editingTax.taxInvoiceNumber || '');
-      setTaxYear(editingTax.taxYear || '2026-2027');
+      setTaxYear(editingTax.taxYear || activeTaxYear);
       const rawNum = extractFamilyNumber(editingTax.familyId || '');
       setFamilyIdNumberInput(rawNum);
       setSelectedFamilyId(editingTax.familyId || '');
@@ -153,7 +171,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       setContactNumber(editingTax.contactNumber || '');
       setVengSection(editingTax.vengSection || '');
       setHouseOrPlotNo(editingTax.houseOrPlotNo || '');
-      setPropertyCategory(editingTax.propertyCategory || 'residential');
+      setPropertyCategory(editingTax.propertyCategory || village.defaultPropertyCategory || 'residential');
       setAssessmentStatus(editingTax.assessmentStatus || 'assessed');
       setLandAreaSqFt(String(editingTax.landAreaSqFt || 1200));
       setBaseRatePerSqFt(String(editingTax.baseRatePerSqFt || village.defaultPropertyTaxRate || 150));
@@ -166,17 +184,18 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       setAmountPaid(editingTax.amountPaid ? String(editingTax.amountPaid) : '');
       setPaymentMode(editingTax.paymentMode || 'cash');
       setPaymentReference(editingTax.paymentReference || '');
-      setDueDate(editingTax.dueDate || '2026-12-31');
+      setDueDate(editingTax.dueDate || village.defaultTaxDueDate || '2026-12-31');
       setRemarks(editingTax.remarks || '');
     } else {
       const nextInv = generateNextTaxInvoiceNumber(
         ownTaxes,
         village.taxInvoicePrefix || 'PTMS-VC-',
-        '2026-2027',
-        village.startingTaxInvoiceNumber || 1
+        activeTaxYear,
+        village.startingTaxInvoiceNumber || 1,
+        serialDigits
       );
       setTaxInvoiceNumber(nextInv);
-      setTaxYear('2026-2027');
+      setTaxYear(activeTaxYear);
       setFamilyIdNumberInput('');
       setSelectedFamilyId('');
       setMatchedHousehold(null);
@@ -185,26 +204,27 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       setContactNumber('');
       setVengSection('');
       setHouseOrPlotNo('');
-      setPropertyCategory('residential');
+      setPropertyCategory(village.defaultPropertyCategory || 'residential');
       setAssessmentStatus('assessed');
       setLandAreaSqFt('1200');
       const bRate = village.defaultPropertyTaxRate ?? 150;
       const sFee = village.defaultSanitationFee ?? 50;
+      const cFee = village.defaultCivicFee ?? 0;
       setBaseRatePerSqFt(String(bRate));
       setAnnualAssessedValue(String(bRate));
       setTotalTaxDue(String(bRate));
       setGarbageOrSanitationFee(String(sFee));
-      setWaterOrCivicFee('');
-      setTotalPayableAmount(bRate + sFee);
+      setWaterOrCivicFee(cFee > 0 ? String(cFee) : '');
+      setTotalPayableAmount(bRate + sFee + cFee);
       setPaymentStatus('unpaid');
       setAmountPaid('');
       setPaymentMode('cash');
       setPaymentReference('');
-      setDueDate('2026-12-31');
+      setDueDate(village.defaultTaxDueDate || `${activeTaxYear.split('-')[0] || '2026'}-12-31`);
       setRemarks('');
     }
     setErrors({});
-  }, [editingTax, village, ownTaxes, isOpen]);
+  }, [editingTax, village, ownTaxes, isOpen, activeTaxYear, serialDigits]);
 
   // Handle number-only Family ID input and auto-fetch household details from own council
   const applyFamilyLookup = (numOnly: string) => {
@@ -235,7 +255,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
     } else {
       setMatchedHousehold(null);
       setFamilyLookupStatus('not_found');
-      setSelectedFamilyId(`${familyIdPrefix}${cleanNum.padStart(4, '0')}`);
+      setSelectedFamilyId(`${familyIdPrefix}${cleanNum.padStart(serialDigits, '0')}`);
       setHouseholdHeadName('');
       setContactNumber('');
       setVengSection('');
@@ -398,13 +418,27 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
               </span>
               <select
                 value={taxYear}
-                onChange={(e) => setTaxYear(e.target.value)}
+                onChange={(e) => {
+                  const newYr = e.target.value;
+                  setTaxYear(newYr);
+                  if (!editingTax) {
+                    const updatedInv = generateNextTaxInvoiceNumber(
+                      ownTaxes,
+                      village.taxInvoicePrefix || 'PTMS-VC-',
+                      newYr,
+                      village.startingTaxInvoiceNumber || 1,
+                      serialDigits
+                    );
+                    setTaxInvoiceNumber(updatedInv);
+                  }
+                }}
                 className="w-full mt-1 px-3 py-1 bg-white border border-emerald-300 rounded-lg font-mono font-bold text-xs text-emerald-950"
               >
-                <option value="2026-2027">2026-2027</option>
-                <option value="2027-2028">2027-2028</option>
-                <option value="2028-2029">2028-2029</option>
-                <option value="2029-2030">2029-2030</option>
+                {financialYearOptions.map((fy) => (
+                  <option key={fy} value={fy}>
+                    {fy}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -467,7 +501,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
                 {familyLookupStatus === 'not_found' && familyIdNumberInput && (
                   <p className="text-[11px] text-amber-700 font-medium mt-1 flex items-center gap-1">
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    <span>No registered household found for #{familyIdNumberInput} ({familyIdPrefix}{familyIdNumberInput.padStart(4, '0')})</span>
+                    <span>No registered household found for #{familyIdNumberInput} ({familyIdPrefix}{familyIdNumberInput.padStart(serialDigits, '0')})</span>
                   </p>
                 )}
                 {errors.selectedFamilyId && <p className="text-xs text-rose-600 mt-1">{errors.selectedFamilyId}</p>}

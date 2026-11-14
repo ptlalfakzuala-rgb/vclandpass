@@ -103,7 +103,8 @@ export const AddEditHouseholdModal: React.FC<AddEditHouseholdModalProps> = ({
       const nextId = generateNextFamilyId(
         ownHouseholds,
         village.familyIdPrefix || `${village.villageName ? village.villageName.substring(0, 3).toUpperCase() : 'VC'}-FAM-`,
-        village.startingFamilyNumber || 1
+        village.startingFamilyNumber || 1,
+        village.familyIdDigits || 4
       );
       setFamilyId(nextId);
       setHeadOfFamily('');

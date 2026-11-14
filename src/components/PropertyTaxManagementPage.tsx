@@ -25,7 +25,8 @@ import {
   FileText,
   UserCheck,
   ArrowUpDown,
-  X
+  X,
+  Settings
 } from 'lucide-react';
 import { HouseholdFamily, PropertyTaxRecord, VillageConfig, LandPass, UserProfile } from '../types';
 
@@ -43,6 +44,7 @@ interface PropertyTaxManagementPageProps {
   onEditTax: (tax: PropertyTaxRecord) => void;
   onDeleteTax: (tax: PropertyTaxRecord) => void;
   onPrintReceipt: (tax: PropertyTaxRecord) => void;
+  onOpenManageSettings: () => void;
 }
 
 export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps> = ({
@@ -58,7 +60,8 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
   onOpenAddTax,
   onEditTax,
   onDeleteTax,
-  onPrintReceipt
+  onPrintReceipt,
+  onOpenManageSettings
 }) => {
   const [activeTab, setActiveTab] = useState<'taxes' | 'households' | 'analytics'>('taxes');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -122,6 +125,16 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
       totalPopulation
     };
   }, [villageTaxes, villageHouseholds]);
+
+  const activeFinancialYear = currentVillage.currentTaxYear || '2026-2027';
+
+  const availableTaxYears = useMemo(() => {
+    const years = new Set<string>([activeFinancialYear, '2025-2026', '2026-2027', '2027-2028']);
+    villageTaxes.forEach((t) => {
+      if (t.taxYear) years.add(t.taxYear);
+    });
+    return Array.from(years).sort((a, b) => b.localeCompare(a));
+  }, [villageTaxes, activeFinancialYear]);
 
   // Search filtered & sorted taxes
   const displayedTaxes = useMemo(() => {
@@ -234,7 +247,16 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3 flex-wrap relative z-10 shrink-0">
+        <div className="flex items-center gap-2.5 flex-wrap relative z-10 shrink-0">
+          <button
+            onClick={onOpenManageSettings}
+            className="px-3.5 py-2.5 bg-white/15 hover:bg-white/25 text-white border border-white/25 rounded-xl text-xs font-bold flex items-center gap-2 shadow-md cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+            title="Manage Family ID & PTMS prefixes, starting serial numbers, and financial year"
+          >
+            <Settings className="w-4 h-4 text-amber-300" />
+            <span>Manage Settings</span>
+          </button>
+
           <button
             onClick={onOpenAddHousehold}
             className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
@@ -253,6 +275,52 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
             <span>Issue Tax Invoice</span>
           </button>
         </div>
+      </div>
+
+      {/* Active PTMS & Family ID Configuration Strip */}
+      <div className="bg-white rounded-2xl px-4 py-3 border border-neutral-200 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-emerald-700" />
+            <span className="text-neutral-500 font-medium">Active Financial Year:</span>
+            <span className="font-mono font-bold text-emerald-900 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+              {activeFinancialYear}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <Hash className="w-3.5 h-3.5 text-purple-700" />
+            <span className="text-neutral-500 font-medium">Family ID Format:</span>
+            <span className="font-mono font-bold text-purple-900 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">
+              {currentVillage.familyIdPrefix || 'VC-FAM-'}{String(currentVillage.startingFamilyNumber ?? 1).padStart(currentVillage.familyIdDigits ?? 4, '0')}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <Receipt className="w-3.5 h-3.5 text-amber-700" />
+            <span className="text-neutral-500 font-medium">Tax Invoice Format:</span>
+            <span className="font-mono font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+              {currentVillage.taxInvoicePrefix || 'PTMS-VC-'}{activeFinancialYear.split('-')[0]}-{String(currentVillage.startingTaxInvoiceNumber ?? 1).padStart(currentVillage.familyIdDigits ?? 4, '0')}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <DollarSign className="w-3.5 h-3.5 text-blue-700" />
+            <span className="text-neutral-500 font-medium">Default Rates:</span>
+            <span className="font-mono font-bold text-neutral-800">
+              ₹{(currentVillage.defaultPropertyTaxRate ?? 150) + (currentVillage.defaultSanitationFee ?? 50) + (currentVillage.defaultCivicFee ?? 0)}
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onOpenManageSettings}
+          className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 self-start lg:self-auto"
+        >
+          <Settings className="w-3.5 h-3.5 text-emerald-700" />
+          <span>Update Prefix / FY / Rates</span>
+        </button>
       </div>
 
       {/* Analytics KPI Stat Cards */}
@@ -382,6 +450,26 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
               >
                 Unpaid
               </button>
+            </div>
+          )}
+
+          {/* Financial Year Filter for Tax Invoices */}
+          {activeTab === 'taxes' && (
+            <div className="flex items-center gap-1.5 bg-neutral-50 px-2.5 py-1.5 rounded-xl border border-neutral-300 text-xs shadow-2xs">
+              <Calendar className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="bg-transparent font-bold text-neutral-800 text-xs focus:outline-none cursor-pointer"
+                title="Filter by Financial Year"
+              >
+                <option value="all">All Financial Years</option>
+                {availableTaxYears.map((yr) => (
+                  <option key={yr} value={yr}>
+                    FY {yr}{yr === activeFinancialYear ? ' (Active)' : ''}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 

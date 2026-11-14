@@ -261,8 +261,13 @@ export const PrintableTaxReceiptModal: React.FC<PrintableTaxReceiptModalProps> =
           </div>
 
           {/* Official Verification Notice */}
-          <div className="text-center pt-4 border-t border-neutral-200 text-[10px] text-neutral-500">
-            This is an official computer-generated receipt from the Village Council Land &amp; Property Tax Management System (PTMS).
+          <div className="text-center pt-4 border-t border-neutral-200 text-[10px] text-neutral-500 space-y-1">
+            {village.ptmsReceiptNote && (
+              <p className="font-semibold text-neutral-700">{village.ptmsReceiptNote}</p>
+            )}
+            <p>
+              This is an official computer-generated receipt from the Village Council Land &amp; Property Tax Management System (PTMS).
+            </p>
           </div>
         </div>
       </div>

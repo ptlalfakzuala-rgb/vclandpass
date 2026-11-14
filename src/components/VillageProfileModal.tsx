@@ -545,17 +545,32 @@ export const VillageProfileModal: React.FC<VillageProfileModalProps> = ({
                     <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-md">Base Rates</span>
                   </div>
 
-                  <div>
-                    <label className="text-xs font-semibold text-neutral-700 block mb-1">
-                      Tax Invoice Prefix
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. PTMS-SPH- or PTMS-VC-"
-                      value={taxInvoicePrefix}
-                      onChange={(e) => setTaxInvoicePrefix(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-neutral-50 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-xs font-mono font-bold text-amber-900"
-                    />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs font-semibold text-neutral-700 block mb-1">
+                        Tax Invoice Prefix
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. PTMS-SPH-"
+                        value={taxInvoicePrefix}
+                        onChange={(e) => setTaxInvoicePrefix(e.target.value)}
+                        className="w-full px-3 py-1.5 bg-neutral-50 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-xs font-mono font-bold text-amber-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-neutral-700 block mb-1">
+                        Starting Invoice No.
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        placeholder="e.g. 1"
+                        value={startingTaxInvoiceNumber}
+                        onChange={(e) => setStartingTaxInvoiceNumber(e.target.value)}
+                        className="w-full px-3 py-1.5 bg-neutral-50 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-amber-500 text-xs font-mono font-bold text-amber-900"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">

@@ -93,6 +93,7 @@ import { AddEditTaxModal } from './components/AddEditTaxModal';
 import { PrintableTaxReceiptModal } from './components/PrintableTaxReceiptModal';
 import { DeleteWarningModal } from './components/DeleteWarningModal';
 import { LoadingOverlay } from './components/LoadingOverlay';
+import { ManagePtmsSettingsModal } from './components/ManagePtmsSettingsModal';
 
 import {
   Search,
@@ -211,6 +212,7 @@ export default function App() {
   const [isAddTaxOpen, setIsAddTaxOpen] = useState<boolean>(false);
   const [editingTax, setEditingTax] = useState<PropertyTaxRecord | null>(null);
   const [selectedTaxForReceipt, setSelectedTaxForReceipt] = useState<PropertyTaxRecord | null>(null);
+  const [isPtmsSettingsOpen, setIsPtmsSettingsOpen] = useState<boolean>(false);
 
   // Users list
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
@@ -539,40 +541,45 @@ export default function App() {
     showNotification('Print & Certificate display settings applied!', 'success');
   };
 
-  // Save Village Profile (No pre-filled fake data)
+  // Save Village Profile & PTMS/Family ID Settings
   const handleSaveVillageProfile = async (updatedConfig: VillageConfig) => {
-    await saveVillageConfig(updatedConfig);
+    setLoadingOperation('Saving Council & PTMS Settings...');
     try {
-      await saveVillageToRTDB(cleanForFirestore(updatedConfig));
-    } catch (e) {
-      console.warn('Realtime Database village write:', e);
-    }
-    setVillages((prev) => {
-      const exists = prev.some((v) => v.id === updatedConfig.id);
-      if (exists) {
-        return prev.map((v) => (v.id === updatedConfig.id ? updatedConfig : v));
+      await saveVillageConfig(updatedConfig);
+      try {
+        await saveVillageToRTDB(cleanForFirestore(updatedConfig));
+      } catch (e) {
+        console.warn('Realtime Database village write:', e);
       }
-      return [updatedConfig, ...prev];
-    });
+      setVillages((prev) => {
+        const exists = prev.some((v) => v.id === updatedConfig.id);
+        if (exists) {
+          return prev.map((v) => (v.id === updatedConfig.id ? updatedConfig : v));
+        }
+        return [updatedConfig, ...prev];
+      });
 
-    setActiveVillageId(updatedConfig.id);
-    setStoredActiveVillageId(updatedConfig.id);
+      setActiveVillageId(updatedConfig.id);
+      setStoredActiveVillageId(updatedConfig.id);
 
-    // Sync currentUser's village reference
-    if (currentUser) {
-      const updatedUser: UserProfile = {
-        ...currentUser,
-        villageId: updatedConfig.id,
-        villageName: updatedConfig.villageName,
-      };
-      setCurrentUser(updatedUser);
-      localStorage.setItem('mizoram_vc_current_user', JSON.stringify(updatedUser));
-      await saveOrUpdateUser(updatedUser);
-      setUsersList((prev) => prev.map((u) => (u.uid === updatedUser.uid ? updatedUser : u)));
+      // Sync currentUser's village reference
+      if (currentUser) {
+        const updatedUser: UserProfile = {
+          ...currentUser,
+          villageId: updatedConfig.id,
+          villageName: updatedConfig.villageName,
+        };
+        setCurrentUser(updatedUser);
+        localStorage.setItem('mizoram_vc_current_user', JSON.stringify(updatedUser));
+        await saveOrUpdateUser(updatedUser);
+        setUsersList((prev) => prev.map((u) => (u.uid === updatedUser.uid ? updatedUser : u)));
+      }
+
+      setIsMandatoryProfileUpdate(false);
+      showNotification(`Settings saved for ${updatedConfig.villageName}!`, 'success');
+    } finally {
+      setLoadingOperation(null);
     }
-
-    setIsMandatoryProfileUpdate(false);
-    showNotification(`Village Council profile for ${updatedConfig.villageName} saved!`, 'success');
   };
 
   // Full Authority Key Verified Handlers
@@ -1706,6 +1713,7 @@ export default function App() {
             }}
             onDeleteTax={handleDeleteTaxRecord}
             onPrintReceipt={(tax) => setSelectedTaxForReceipt(tax)}
+            onOpenManageSettings={() => setIsPtmsSettingsOpen(true)}
           />
         )}
         </div>
@@ -1919,6 +1927,17 @@ export default function App() {
           onClose={() => setSelectedTaxForReceipt(null)}
         />
       )}
+
+      {/* 17. Manage PTMS & Family ID Settings Modal */}
+      <ManagePtmsSettingsModal
+        isOpen={isPtmsSettingsOpen}
+        onClose={() => setIsPtmsSettingsOpen(false)}
+        village={currentVillage}
+        households={perspectiveHouseholds}
+        taxRecords={perspectiveTaxes}
+        onSave={handleSaveVillageProfile}
+        currentUserDisplayName={currentUser?.displayName || currentUser?.username}
+      />
 
       {/* 17. Realtime Loading Animation Overlay for Saving, Updating, Deleting */}
       <LoadingOverlay message={loadingOperation} />

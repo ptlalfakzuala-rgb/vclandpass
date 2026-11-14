@@ -45,6 +45,60 @@
           "description": "Pass number serial prefix for In Hmun (e.g., MZ-05-SPH-IH- or SPH/VC/IH/)",
           "maxLength": 64
         },
+        "familyIdPrefix": {
+          "type": "string",
+          "description": "Prefix for Council Family IDs (e.g., SPH-FAM-)",
+          "maxLength": 64
+        },
+        "taxInvoicePrefix": {
+          "type": "string",
+          "description": "Prefix for PTMS Tax Invoices (e.g., PTMS-SPH-)",
+          "maxLength": 64
+        },
+        "startingFamilyNumber": {
+          "type": "number",
+          "description": "Starting serial number for Household Family IDs"
+        },
+        "startingTaxInvoiceNumber": {
+          "type": "number",
+          "description": "Starting serial number for PTMS Tax Invoices"
+        },
+        "familyIdDigits": {
+          "type": "number",
+          "description": "Zero-pad digit length for Family ID and Tax Invoice numbers"
+        },
+        "currentTaxYear": {
+          "type": "string",
+          "description": "Active Financial / Assessment Year (e.g., 2026-2027)",
+          "maxLength": 32
+        },
+        "defaultPropertyTaxRate": {
+          "type": "number",
+          "description": "Default annual base property tax amount"
+        },
+        "defaultSanitationFee": {
+          "type": "number",
+          "description": "Default annual garbage/sanitation cess"
+        },
+        "defaultCivicFee": {
+          "type": "number",
+          "description": "Default annual civic/water cess"
+        },
+        "defaultTaxDueDate": {
+          "type": "string",
+          "description": "Default payment deadline date (YYYY-MM-DD)",
+          "maxLength": 32
+        },
+        "defaultPropertyCategory": {
+          "type": "string",
+          "description": "Default property category for new invoices",
+          "maxLength": 64
+        },
+        "ptmsReceiptNote": {
+          "type": "string",
+          "description": "Optional custom note printed on official tax receipts",
+          "maxLength": 512
+        },
         "logoUrl": {
           "type": "string",
           "description": "Base64 or image URL of the Village Council official seal/logo",

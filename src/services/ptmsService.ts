@@ -350,15 +350,17 @@ export function subscribeToRTDBTaxRecords(callback: (records: PropertyTaxRecord[
 export function generateNextFamilyId(
   existingHouseholds: HouseholdFamily[],
   prefix: string = 'VC-FAM-',
-  startNumber: number = 1
+  startNumber: number = 1,
+  digits: number = 4
 ): string {
   const cleanPrefix = (prefix || 'VC-FAM-').trim();
+  const padLen = Math.max(1, Math.min(8, digits || 4));
   
-  // Find highest current sequence number (starts from 0 so first ID is 0001)
+  // Find highest current sequence number (starts from startNumber - 1 so first ID is startNumber)
   let maxSeq = Math.max(0, startNumber - 1);
   const escapedPrefix = cleanPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`^${escapedPrefix}(\\d+)$`, 'i');
-  const anyTrailingNumRegex = /(\\d+)$/;
+  const anyTrailingNumRegex = /(\d+)$/;
 
   existingHouseholds.forEach((h) => {
     if (!h.familyId) return;
@@ -380,24 +382,26 @@ export function generateNextFamilyId(
   });
 
   const nextSeq = maxSeq + 1;
-  const padded = String(nextSeq).padStart(4, '0');
+  const padded = String(nextSeq).padStart(padLen, '0');
   return `${cleanPrefix}${padded}`;
 }
 
 // =========================================================================
 // HELPER: GENERATE NEXT SEQUENTIAL TAX INVOICE NUMBER
-// e.g. "PTMS-SPH-2025-0001"
+// e.g. "PTMS-SPH-2026-0001"
 // =========================================================================
 export function generateNextTaxInvoiceNumber(
   existingTaxes: PropertyTaxRecord[],
   prefix: string = 'PTMS-VC-',
   taxYear: string = '2026-2027',
-  startNumber: number = 1
+  startNumber: number = 1,
+  digits: number = 4
 ): string {
   const yearSuffix = taxYear.split('-')[0] || '2026';
   const cleanPrefix = `${(prefix || 'PTMS-VC-').trim()}${yearSuffix}-`;
+  const padLen = Math.max(1, Math.min(8, digits || 4));
   
-  let maxSeq = startNumber - 1;
+  let maxSeq = Math.max(0, startNumber - 1);
   const escapedPrefix = cleanPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`^${escapedPrefix}(\\d+)$`, 'i');
 
@@ -412,6 +416,6 @@ export function generateNextTaxInvoiceNumber(
   });
 
   const nextSeq = maxSeq + 1;
-  const padded = String(nextSeq).padStart(4, '0');
+  const padded = String(nextSeq).padStart(padLen, '0');
   return `${cleanPrefix}${padded}`;
 }
