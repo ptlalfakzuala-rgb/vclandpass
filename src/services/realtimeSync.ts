@@ -54,20 +54,96 @@ export async function deleteUserFromRTDB(uid: string): Promise<void> {
 export async function savePassToRTDB(pass: LandPass): Promise<void> {
   if (!rtdb) return;
   try {
+    const cleaned = cleanForRTDB(pass);
     const passRef = ref(rtdb, `land_passes/${pass.id}`);
-    nonBlockingRTDB(set(passRef, cleanForRTDB(pass)));
+    nonBlockingRTDB(set(passRef, cleaned));
+
+    // Isolated database path for each specific Village Council
+    if (pass.villageId) {
+      const villagePassRef = ref(rtdb, `villages_data/${pass.villageId}/land_passes/${pass.id}`);
+      nonBlockingRTDB(set(villagePassRef, cleaned));
+    }
   } catch (err) {
     console.warn('Realtime Database write land pass notice:', err);
   }
 }
 
-export async function deletePassFromRTDB(passId: string): Promise<void> {
+export async function deletePassFromRTDB(passId: string, villageId?: string): Promise<void> {
   if (!rtdb) return;
   try {
     const passRef = ref(rtdb, `land_passes/${passId}`);
     nonBlockingRTDB(remove(passRef));
+
+    if (villageId) {
+      const villagePassRef = ref(rtdb, `villages_data/${villageId}/land_passes/${passId}`);
+      nonBlockingRTDB(remove(villagePassRef));
+    }
   } catch (err) {
     console.warn('Realtime Database remove land pass notice:', err);
+  }
+}
+
+export async function saveHouseholdToRTDB(household: HouseholdFamily): Promise<void> {
+  if (!rtdb) return;
+  try {
+    const cleaned = cleanForRTDB(household);
+    const hRef = ref(rtdb, `households/${household.id}`);
+    nonBlockingRTDB(set(hRef, cleaned));
+
+    // Isolated database path for each specific Village Council
+    if (household.villageId) {
+      const villageHRef = ref(rtdb, `villages_data/${household.villageId}/households/${household.id}`);
+      nonBlockingRTDB(set(villageHRef, cleaned));
+    }
+  } catch (err) {
+    console.warn('Realtime Database write household notice:', err);
+  }
+}
+
+export async function deleteHouseholdFromRTDB(householdId: string, villageId?: string): Promise<void> {
+  if (!rtdb) return;
+  try {
+    const hRef = ref(rtdb, `households/${householdId}`);
+    nonBlockingRTDB(remove(hRef));
+
+    if (villageId) {
+      const villageHRef = ref(rtdb, `villages_data/${villageId}/households/${householdId}`);
+      nonBlockingRTDB(remove(villageHRef));
+    }
+  } catch (err) {
+    console.warn('Realtime Database remove household notice:', err);
+  }
+}
+
+export async function saveTaxToRTDB(tax: PropertyTaxRecord): Promise<void> {
+  if (!rtdb) return;
+  try {
+    const cleaned = cleanForRTDB(tax);
+    const tRef = ref(rtdb, `property_taxes/${tax.id}`);
+    nonBlockingRTDB(set(tRef, cleaned));
+
+    // Isolated database path for each specific Village Council
+    if (tax.villageId) {
+      const villageTRef = ref(rtdb, `villages_data/${tax.villageId}/property_taxes/${tax.id}`);
+      nonBlockingRTDB(set(villageTRef, cleaned));
+    }
+  } catch (err) {
+    console.warn('Realtime Database write tax notice:', err);
+  }
+}
+
+export async function deleteTaxFromRTDB(taxId: string, villageId?: string): Promise<void> {
+  if (!rtdb) return;
+  try {
+    const tRef = ref(rtdb, `property_taxes/${taxId}`);
+    nonBlockingRTDB(remove(tRef));
+
+    if (villageId) {
+      const villageTRef = ref(rtdb, `villages_data/${villageId}/property_taxes/${taxId}`);
+      nonBlockingRTDB(remove(villageTRef));
+    }
+  } catch (err) {
+    console.warn('Realtime Database remove tax notice:', err);
   }
 }
 

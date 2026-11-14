@@ -92,6 +92,7 @@ import { AddEditHouseholdModal } from './components/AddEditHouseholdModal';
 import { AddEditTaxModal } from './components/AddEditTaxModal';
 import { PrintableTaxReceiptModal } from './components/PrintableTaxReceiptModal';
 import { DeleteWarningModal } from './components/DeleteWarningModal';
+import { LoadingOverlay } from './components/LoadingOverlay';
 
 import {
   Search,
@@ -219,6 +220,9 @@ export default function App() {
   const [passToDeleteForWarning, setPassToDeleteForWarning] = useState<LandPass | null>(null);
   const [householdToDeleteForWarning, setHouseholdToDeleteForWarning] = useState<HouseholdFamily | null>(null);
   const [taxToDeleteForWarning, setTaxToDeleteForWarning] = useState<PropertyTaxRecord | null>(null);
+
+  // Animated loading feedback state for saving, updating, deleting in Land Pass Registry & PTMS
+  const [loadingOperation, setLoadingOperation] = useState<string | null>(null);
 
   const showNotification = (message: string, type: 'success' | 'info' | 'warn' = 'success') => {
     setNotification({ message, type });
@@ -781,39 +785,50 @@ export default function App() {
     isEdit: boolean,
     existingId?: string
   ) => {
-    const nowIso = new Date().toISOString();
-    const id = isEdit && existingId ? existingId : `MZ_${passData.passType.toUpperCase()}_${Date.now()}`;
+    setLoadingOperation(isEdit ? 'Updating Land Pass in Registry...' : 'Issuing New Land Pass & Syncing to Registry...');
+    try {
+      const nowIso = new Date().toISOString();
+      const id = isEdit && existingId ? existingId : `MZ_${passData.passType.toUpperCase()}_${Date.now()}`;
 
-    const villageId = currentVillage?.id || passData.villageId || 'saiphai';
-    const villageName = currentVillage?.villageName || passData.villageName || 'Saiphai';
+      const villageId = currentVillage?.id || passData.villageId || 'saiphai';
+      const villageName = currentVillage?.villageName || passData.villageName || 'Saiphai';
 
-    const newOrUpdatedPass: LandPass = {
-      ...passData,
-      id,
-      villageId,
-      villageName,
-      createdBy: isEdit && editingPass?.createdBy ? editingPass.createdBy : (currentUser?.uid || 'authority'),
-      createdAt: isEdit && editingPass ? editingPass.createdAt : nowIso,
-      updatedAt: nowIso,
-      syncedToCloud: navigator.onLine,
-      approvalStatus: 'live',
-    };
+      const newOrUpdatedPass: LandPass = {
+        ...passData,
+        id,
+        villageId,
+        villageName,
+        createdBy: isEdit && editingPass?.createdBy ? editingPass.createdBy : (currentUser?.uid || 'authority'),
+        createdAt: isEdit && editingPass ? editingPass.createdAt : nowIso,
+        updatedAt: nowIso,
+        syncedToCloud: navigator.onLine,
+        approvalStatus: 'live',
+      };
 
-    let updatedList: LandPass[];
-    if (isEdit) {
-      updatedList = passes.map((p) => (p.id === id ? newOrUpdatedPass : p));
-    } else {
-      updatedList = [newOrUpdatedPass, ...passes];
-    }
-    setPasses(updatedList);
-    await setCachedPasses(updatedList);
+      let updatedList: LandPass[];
+      if (isEdit) {
+        updatedList = passes.map((p) => (p.id === id ? newOrUpdatedPass : p));
+      } else {
+        updatedList = [newOrUpdatedPass, ...passes];
+      }
+      setPasses(updatedList);
+      await setCachedPasses(updatedList);
 
-    const cleanedPass = cleanForFirestore({ ...newOrUpdatedPass, syncedToCloud: true });
-    if (navigator.onLine) {
-      try {
-        const docRef = doc(db, 'land_passes', id);
-        await setDoc(docRef, cleanedPass);
-      } catch {
+      const cleanedPass = cleanForFirestore({ ...newOrUpdatedPass, syncedToCloud: true });
+      if (navigator.onLine) {
+        try {
+          const docRef = doc(db, 'land_passes', id);
+          await setDoc(docRef, cleanedPass);
+        } catch {
+          queueOfflineMutation({
+            id,
+            type: isEdit ? 'UPDATE' : 'CREATE',
+            pass: newOrUpdatedPass,
+            timestamp: Date.now(),
+          });
+          setPendingSyncCount((prev) => prev + 1);
+        }
+      } else {
         queueOfflineMutation({
           id,
           type: isEdit ? 'UPDATE' : 'CREATE',
@@ -822,42 +837,36 @@ export default function App() {
         });
         setPendingSyncCount((prev) => prev + 1);
       }
-    } else {
-      queueOfflineMutation({
+
+      // Broadcast to Firebase Realtime Database in background (both root and isolated village path)
+      try {
+        savePassToRTDB(cleanedPass);
+      } catch (e) {
+        console.warn('Realtime Database pass write:', e);
+      }
+
+      await logActivity(
+        isEdit ? 'UPDATE_PASS' : 'CREATE_PASS',
         id,
-        type: isEdit ? 'UPDATE' : 'CREATE',
-        pass: newOrUpdatedPass,
-        timestamp: Date.now(),
-      });
-      setPendingSyncCount((prev) => prev + 1);
+        newOrUpdatedPass.passNumber,
+        currentUser?.displayName || currentUser?.username || 'Secretary',
+        `${isEdit ? 'Updated' : 'Issued new'} ${newOrUpdatedPass.passType === 'huan_ram' ? 'Huan Ram' : 'In Hmun'} Pass for ${newOrUpdatedPass.ownerName} (${newOrUpdatedPass.passNumber})`
+      );
+
+      setIsAddEditOpen(false);
+      setEditingPass(null);
+
+      // Auto-open Printable View for document review
+      setSelectedPassForPrint(newOrUpdatedPass);
+      showNotification(
+        isEdit
+          ? `Pass ${newOrUpdatedPass.passNumber} updated!`
+          : `New Land Pass ${newOrUpdatedPass.passNumber} issued!`,
+        'success'
+      );
+    } finally {
+      setLoadingOperation(null);
     }
-
-    // Broadcast to Firebase Realtime Database in background
-    try {
-      savePassToRTDB(cleanedPass);
-    } catch (e) {
-      console.warn('Realtime Database pass write:', e);
-    }
-
-    await logActivity(
-      isEdit ? 'UPDATE_PASS' : 'CREATE_PASS',
-      id,
-      newOrUpdatedPass.passNumber,
-      currentUser?.displayName || currentUser?.username || 'Secretary',
-      `${isEdit ? 'Updated' : 'Issued new'} ${newOrUpdatedPass.passType === 'huan_ram' ? 'Huan Ram' : 'In Hmun'} Pass for ${newOrUpdatedPass.ownerName} (${newOrUpdatedPass.passNumber})`
-    );
-
-    setIsAddEditOpen(false);
-    setEditingPass(null);
-
-    // Auto-open Printable View for document review
-    setSelectedPassForPrint(newOrUpdatedPass);
-    showNotification(
-      isEdit
-        ? `Pass ${newOrUpdatedPass.passNumber} updated!`
-        : `New Land Pass ${newOrUpdatedPass.passNumber} issued!`,
-      'success'
-    );
   };
 
   // Open Warning Dialogue Box to delete a Land Pass
@@ -867,22 +876,33 @@ export default function App() {
 
   // Confirmed Permanent Delete Execution from Warning Dialogue Box
   const handleConfirmDeletePass = async (passToDelete: LandPass) => {
-    const filtered = passes.filter((p) => p.id !== passToDelete.id);
-    setPasses(filtered);
-    await setCachedPasses(filtered);
+    setLoadingOperation('Permanently Deleting Land Pass Record...');
+    try {
+      const filtered = passes.filter((p) => p.id !== passToDelete.id);
+      setPasses(filtered);
+      await setCachedPasses(filtered);
 
-    // If currently viewing deleted pass in print preview or editing, close modal
-    if (selectedPassForPrint?.id === passToDelete.id) {
-      setSelectedPassForPrint(null);
-    }
-    if (editingPass?.id === passToDelete.id) {
-      setEditingPass(null);
-    }
+      // If currently viewing deleted pass in print preview or editing, close modal
+      if (selectedPassForPrint?.id === passToDelete.id) {
+        setSelectedPassForPrint(null);
+      }
+      if (editingPass?.id === passToDelete.id) {
+        setEditingPass(null);
+      }
 
-    if (navigator.onLine) {
-      try {
-        await deleteDoc(doc(db, 'land_passes', passToDelete.id));
-      } catch {
+      if (navigator.onLine) {
+        try {
+          await deleteDoc(doc(db, 'land_passes', passToDelete.id));
+        } catch {
+          queueOfflineMutation({
+            id: passToDelete.id,
+            type: 'DELETE',
+            pass: passToDelete,
+            timestamp: Date.now(),
+          });
+          setPendingSyncCount((prev) => prev + 1);
+        }
+      } else {
         queueOfflineMutation({
           id: passToDelete.id,
           type: 'DELETE',
@@ -891,35 +911,29 @@ export default function App() {
         });
         setPendingSyncCount((prev) => prev + 1);
       }
-    } else {
-      queueOfflineMutation({
-        id: passToDelete.id,
-        type: 'DELETE',
-        pass: passToDelete,
-        timestamp: Date.now(),
-      });
-      setPendingSyncCount((prev) => prev + 1);
+
+      try {
+        deletePassFromRTDB(passToDelete.id, passToDelete.villageId);
+      } catch (e) {
+        console.warn('Realtime Database pass delete:', e);
+      }
+
+      await logActivity(
+        'DELETE_PASS',
+        passToDelete.id,
+        passToDelete.passNumber,
+        currentUser?.displayName || currentUser?.username || 'Secretary',
+        `Permanently deleted land pass ${passToDelete.passNumber} for ${passToDelete.ownerName}`
+      );
+
+      showNotification(
+        `Land Pass ${passToDelete.passNumber} (${passToDelete.ownerName}) permanently deleted.`,
+        'info'
+      );
+      setPassToDeleteForWarning(null);
+    } finally {
+      setLoadingOperation(null);
     }
-
-    try {
-      deletePassFromRTDB(passToDelete.id);
-    } catch (e) {
-      console.warn('Realtime Database pass delete:', e);
-    }
-
-    await logActivity(
-      'DELETE_PASS',
-      passToDelete.id,
-      passToDelete.passNumber,
-      currentUser?.displayName || currentUser?.username || 'Secretary',
-      `Permanently deleted land pass ${passToDelete.passNumber} for ${passToDelete.ownerName}`
-    );
-
-    showNotification(
-      `Land Pass ${passToDelete.passNumber} (${passToDelete.ownerName}) permanently deleted.`,
-      'info'
-    );
-    setPassToDeleteForWarning(null);
   };
 
   // =========================================================================
@@ -927,8 +941,15 @@ export default function App() {
   // =========================================================================
 
   const handleSaveHousehold = async (household: HouseholdFamily) => {
+    setLoadingOperation(editingHousehold ? 'Updating Household Family Record...' : 'Registering Family ID & Syncing...');
     try {
-      const saved = await saveHouseholdRecord(household);
+      const scopedHousehold: HouseholdFamily = {
+        ...household,
+        villageId: currentVillage.id,
+        villageName: currentVillage.villageName,
+      };
+
+      const saved = await saveHouseholdRecord(scopedHousehold);
       setHouseholds((prev) => {
         const idx = prev.findIndex((h) => h.id === saved.id);
         if (idx >= 0) {
@@ -953,6 +974,8 @@ export default function App() {
     } catch (err: any) {
       console.error('Save household error:', err);
       showNotification(`Error saving household: ${err?.message || err}`, 'warn');
+    } finally {
+      setLoadingOperation(null);
     }
   };
 
@@ -961,8 +984,9 @@ export default function App() {
   };
 
   const handleConfirmDeleteHousehold = async (household: HouseholdFamily) => {
+    setLoadingOperation('Deleting Household Family Record...');
     try {
-      await deleteHouseholdRecord(household.id);
+      await deleteHouseholdRecord(household.id, household.villageId);
       setHouseholds((prev) => prev.filter((h) => h.id !== household.id));
 
       logActivity(
@@ -979,12 +1003,21 @@ export default function App() {
       console.error('Delete household error:', err);
       showNotification(`Error deleting household: ${err?.message || err}`, 'warn');
       setHouseholdToDeleteForWarning(null);
+    } finally {
+      setLoadingOperation(null);
     }
   };
 
   const handleSaveTaxRecord = async (tax: PropertyTaxRecord) => {
+    setLoadingOperation(editingTax ? 'Updating Property Tax Assessment...' : 'Issuing Property Tax Invoice & Syncing...');
     try {
-      const saved = await saveTaxRecord(tax);
+      const scopedTax: PropertyTaxRecord = {
+        ...tax,
+        villageId: currentVillage.id,
+        villageName: currentVillage.villageName,
+      };
+
+      const saved = await saveTaxRecord(scopedTax);
       setTaxRecords((prev) => {
         const idx = prev.findIndex((t) => t.id === saved.id);
         if (idx >= 0) {
@@ -1009,6 +1042,8 @@ export default function App() {
     } catch (err: any) {
       console.error('Save tax record error:', err);
       showNotification(`Error saving tax invoice: ${err?.message || err}`, 'warn');
+    } finally {
+      setLoadingOperation(null);
     }
   };
 
@@ -1017,8 +1052,9 @@ export default function App() {
   };
 
   const handleConfirmDeleteTaxRecord = async (tax: PropertyTaxRecord) => {
+    setLoadingOperation('Deleting Property Tax Record...');
     try {
-      await deleteTaxRecord(tax.id);
+      await deleteTaxRecord(tax.id, tax.villageId);
       setTaxRecords((prev) => prev.filter((t) => t.id !== tax.id));
 
       logActivity(
@@ -1035,6 +1071,8 @@ export default function App() {
       console.error('Delete tax error:', err);
       showNotification(`Error deleting tax invoice: ${err?.message || err}`, 'warn');
       setTaxToDeleteForWarning(null);
+    } finally {
+      setLoadingOperation(null);
     }
   };
 
@@ -1080,15 +1118,22 @@ export default function App() {
     // Never show sample/bootstrap passes from other villages to any real secretary
     if (p.createdBy === 'system_bootstrap') return false;
 
-    // 1. Pass was created by this logged-in secretary
-    if (currentUser?.uid && p.createdBy === currentUser.uid) return true;
-
-    // 2. Pass was issued for this user's distinct village council
     const userVillageId = currentUser?.villageId || currentVillage.id;
-    const isGenericVillage = !userVillageId || userVillageId === 'village_default' || userVillageId === 'mizoram_generic';
-    if (!isGenericVillage && p.villageId === userVillageId) {
+    const userVillageName = currentVillage.villageName?.trim().toLowerCase();
+
+    // If pass has an explicit village ID, strictly match user's village council (do not connect with another user/village council)
+    if (p.villageId && userVillageId) {
+      if (p.villageId === userVillageId) return true;
+      return false;
+    }
+
+    // Match by village name
+    if (p.villageName && userVillageName && p.villageName.trim().toLowerCase() === userVillageName) {
       return true;
     }
+
+    // Pass created by this logged-in secretary
+    if (currentUser?.uid && p.createdBy === currentUser.uid) return true;
 
     return false;
   });
@@ -1857,6 +1902,9 @@ export default function App() {
           onClose={() => setSelectedTaxForReceipt(null)}
         />
       )}
+
+      {/* 17. Realtime Loading Animation Overlay for Saving, Updating, Deleting */}
+      <LoadingOverlay message={loadingOperation} />
     </div>
   );
 }

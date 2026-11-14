@@ -24,6 +24,7 @@ import {
   DollarSign,
   FileText,
   UserCheck,
+  ArrowUpDown,
   X
 } from 'lucide-react';
 import { HouseholdFamily, PropertyTaxRecord, VillageConfig, LandPass, UserProfile } from '../types';
@@ -65,6 +66,15 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [selectedHouseholdDetail, setSelectedHouseholdDetail] = useState<HouseholdFamily | null>(null);
 
+  // Sorting state for Tax Invoices & Family ID Register
+  const [taxSortBy, setTaxSortBy] = useState<
+    'date_desc' | 'date_asc' | 'invoice_asc' | 'invoice_desc' | 'amount_desc' | 'amount_asc' | 'head_asc' | 'status'
+  >('date_desc');
+
+  const [householdSortBy, setHouseholdSortBy] = useState<
+    'family_id_asc' | 'family_id_desc' | 'head_asc' | 'members_desc' | 'veng_asc' | 'date_desc'
+  >('family_id_asc');
+
   // Filtered households for current village
   const villageHouseholds = useMemo(() => {
     return households.filter(
@@ -99,9 +109,9 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
     };
   }, [villageTaxes, villageHouseholds]);
 
-  // Search filtered taxes
+  // Search filtered & sorted taxes
   const displayedTaxes = useMemo(() => {
-    return villageTaxes.filter((t) => {
+    const filtered = villageTaxes.filter((t) => {
       const matchSearch =
         !searchTerm.trim() ||
         t.taxInvoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -118,11 +128,40 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
 
       return matchSearch && matchStatus && matchYear;
     });
-  }, [villageTaxes, searchTerm, statusFilter, selectedYear]);
 
-  // Search filtered households
+    return [...filtered].sort((a, b) => {
+      if (taxSortBy === 'date_desc') {
+        return (b.createdAt || b.dueDate || '').localeCompare(a.createdAt || a.dueDate || '');
+      }
+      if (taxSortBy === 'date_asc') {
+        return (a.createdAt || a.dueDate || '').localeCompare(b.createdAt || b.dueDate || '');
+      }
+      if (taxSortBy === 'invoice_asc') {
+        return (a.taxInvoiceNumber || '').localeCompare(b.taxInvoiceNumber || '', undefined, { numeric: true });
+      }
+      if (taxSortBy === 'invoice_desc') {
+        return (b.taxInvoiceNumber || '').localeCompare(a.taxInvoiceNumber || '', undefined, { numeric: true });
+      }
+      if (taxSortBy === 'amount_desc') {
+        return (b.totalPayableAmount || 0) - (a.totalPayableAmount || 0);
+      }
+      if (taxSortBy === 'amount_asc') {
+        return (a.totalPayableAmount || 0) - (b.totalPayableAmount || 0);
+      }
+      if (taxSortBy === 'head_asc') {
+        return (a.householdHeadName || '').localeCompare(b.householdHeadName || '');
+      }
+      if (taxSortBy === 'status') {
+        const order: Record<string, number> = { unpaid: 0, partial: 1, overdue: 2, paid: 3 };
+        return (order[a.paymentStatus] ?? 0) - (order[b.paymentStatus] ?? 0);
+      }
+      return 0;
+    });
+  }, [villageTaxes, searchTerm, statusFilter, selectedYear, taxSortBy]);
+
+  // Search filtered & sorted households
   const displayedHouseholds = useMemo(() => {
-    return villageHouseholds.filter((h) => {
+    const filtered = villageHouseholds.filter((h) => {
       return (
         !searchTerm.trim() ||
         h.familyId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -131,7 +170,29 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
         h.vengSection?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
-  }, [villageHouseholds, searchTerm]);
+
+    return [...filtered].sort((a, b) => {
+      if (householdSortBy === 'family_id_asc') {
+        return (a.familyId || '').localeCompare(b.familyId || '', undefined, { numeric: true });
+      }
+      if (householdSortBy === 'family_id_desc') {
+        return (b.familyId || '').localeCompare(a.familyId || '', undefined, { numeric: true });
+      }
+      if (householdSortBy === 'head_asc') {
+        return (a.headOfFamily || '').localeCompare(b.headOfFamily || '');
+      }
+      if (householdSortBy === 'members_desc') {
+        return (b.totalMembers || 0) - (a.totalMembers || 0);
+      }
+      if (householdSortBy === 'veng_asc') {
+        return (a.vengSection || '').localeCompare(b.vengSection || '');
+      }
+      if (householdSortBy === 'date_desc') {
+        return (b.createdAt || '').localeCompare(a.createdAt || '');
+      }
+      return 0;
+    });
+  }, [villageHouseholds, searchTerm, householdSortBy]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -307,6 +368,48 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
               >
                 Unpaid
               </button>
+            </div>
+          )}
+
+          {/* Sort By Dropdown for Tax Invoices */}
+          {activeTab === 'taxes' && (
+            <div className="flex items-center gap-1.5 bg-neutral-50 px-2.5 py-1.5 rounded-xl border border-neutral-300 text-xs shadow-2xs">
+              <ArrowUpDown className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+              <span className="text-neutral-500 text-[11px] font-medium hidden sm:inline">Sort:</span>
+              <select
+                value={taxSortBy}
+                onChange={(e: any) => setTaxSortBy(e.target.value)}
+                className="bg-transparent font-bold text-neutral-800 text-xs focus:outline-none cursor-pointer"
+              >
+                <option value="date_desc">Newest Date First</option>
+                <option value="date_asc">Oldest Date First</option>
+                <option value="invoice_asc">Invoice No: Low &rarr; High</option>
+                <option value="invoice_desc">Invoice No: High &rarr; Low</option>
+                <option value="amount_desc">Amount: High &rarr; Low</option>
+                <option value="amount_asc">Amount: Low &rarr; High</option>
+                <option value="head_asc">Household Head: A to Z</option>
+                <option value="status">Status: Unpaid First</option>
+              </select>
+            </div>
+          )}
+
+          {/* Sort By Dropdown for Family ID Registered List */}
+          {activeTab === 'households' && (
+            <div className="flex items-center gap-1.5 bg-neutral-50 px-2.5 py-1.5 rounded-xl border border-neutral-300 text-xs shadow-2xs">
+              <ArrowUpDown className="w-3.5 h-3.5 text-purple-700 shrink-0" />
+              <span className="text-neutral-500 text-[11px] font-medium hidden sm:inline">Sort:</span>
+              <select
+                value={householdSortBy}
+                onChange={(e: any) => setHouseholdSortBy(e.target.value)}
+                className="bg-transparent font-bold text-neutral-800 text-xs focus:outline-none cursor-pointer"
+              >
+                <option value="family_id_asc">Family ID: 0001 &uarr; Sequential</option>
+                <option value="family_id_desc">Family ID: Highest First</option>
+                <option value="head_asc">Head of Family: A to Z</option>
+                <option value="members_desc">Total Members: High &rarr; Low</option>
+                <option value="veng_asc">Veng / Section: A to Z</option>
+                <option value="date_desc">Recently Registered First</option>
+              </select>
             </div>
           )}
         </div>

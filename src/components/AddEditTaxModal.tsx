@@ -160,7 +160,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
     }
   };
 
-  // Recalculate total payable when components change, and auto-fill amountPaid if paid
+  // Recalculate total payable when components change, and auto-fill Amount Collected from the exact sum
   useEffect(() => {
     const tax = parseFloat(totalTaxDue) || 0;
     const san = parseFloat(garbageOrSanitationFee) || 0;
@@ -168,11 +168,10 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
     const total = Math.max(0, tax + san + civic);
     setTotalPayableAmount(total);
 
-    // Auto-fill Amount Collected if payment status is set to paid
-    if (paymentStatus === 'paid') {
-      setAmountPaid(total > 0 ? String(total) : '');
-    }
-  }, [totalTaxDue, garbageOrSanitationFee, waterOrCivicFee, paymentStatus]);
+    // Auto-fill Amount Collected from exact sum of Base Property Tax + Garbage Cess + Civic Cess
+    setAmountPaid(total > 0 ? String(total) : '');
+    setPaymentStatus(total > 0 ? 'paid' : 'unpaid');
+  }, [totalTaxDue, garbageOrSanitationFee, waterOrCivicFee]);
 
   // Handle manual input of Amount Collected and auto-adjust payment status
   const handleAmountPaidChange = (val: string) => {

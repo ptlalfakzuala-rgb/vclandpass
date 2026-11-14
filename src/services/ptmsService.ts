@@ -117,8 +117,15 @@ export async function saveHouseholdRecord(household: HouseholdFamily): Promise<H
   // 3. Write to RTDB for silent realtime broadcast (non-blocking)
   if (rtdb) {
     try {
+      const cleaned = cleanForRTDB(itemToSave);
       const rtdbRef = ref(rtdb, `households/${itemToSave.id}`);
-      nonBlockingRTDB(set(rtdbRef, cleanForRTDB(itemToSave)));
+      nonBlockingRTDB(set(rtdbRef, cleaned));
+
+      // Multi-tenant separate database for this specific village council
+      if (itemToSave.villageId) {
+        const villageHRef = ref(rtdb, `villages_data/${itemToSave.villageId}/households/${itemToSave.id}`);
+        nonBlockingRTDB(set(villageHRef, cleaned));
+      }
     } catch (err) {
       console.warn('Notice saving household to RTDB:', err);
     }
@@ -127,9 +134,11 @@ export async function saveHouseholdRecord(household: HouseholdFamily): Promise<H
   return itemToSave;
 }
 
-export async function deleteHouseholdRecord(householdId: string): Promise<void> {
+export async function deleteHouseholdRecord(householdId: string, villageId?: string): Promise<void> {
   // 1. Update cache
   const cached = await getCachedHouseholds();
+  const deletedItem = cached.find((h) => h.id === householdId);
+  const targetVillageId = villageId || deletedItem?.villageId;
   const filtered = cached.filter((h) => h.id !== householdId);
   setCachedHouseholds(filtered);
 
@@ -146,6 +155,9 @@ export async function deleteHouseholdRecord(householdId: string): Promise<void> 
   if (rtdb) {
     try {
       nonBlockingRTDB(remove(ref(rtdb, `households/${householdId}`)));
+      if (targetVillageId) {
+        nonBlockingRTDB(remove(ref(rtdb, `villages_data/${targetVillageId}/households/${householdId}`)));
+      }
     } catch (err) {
       console.warn('Notice deleting household from RTDB:', err);
     }
@@ -232,8 +244,15 @@ export async function saveTaxRecord(tax: PropertyTaxRecord): Promise<PropertyTax
   // 3. Write to RTDB (non-blocking)
   if (rtdb) {
     try {
+      const cleaned = cleanForRTDB(itemToSave);
       const rtdbRef = ref(rtdb, `property_taxes/${itemToSave.id}`);
-      nonBlockingRTDB(set(rtdbRef, cleanForRTDB(itemToSave)));
+      nonBlockingRTDB(set(rtdbRef, cleaned));
+
+      // Multi-tenant separate database for this specific village council
+      if (itemToSave.villageId) {
+        const villageTRef = ref(rtdb, `villages_data/${itemToSave.villageId}/property_taxes/${itemToSave.id}`);
+        nonBlockingRTDB(set(villageTRef, cleaned));
+      }
     } catch (err) {
       console.warn('Notice saving property tax to RTDB:', err);
     }
@@ -242,9 +261,11 @@ export async function saveTaxRecord(tax: PropertyTaxRecord): Promise<PropertyTax
   return itemToSave;
 }
 
-export async function deleteTaxRecord(taxId: string): Promise<void> {
+export async function deleteTaxRecord(taxId: string, villageId?: string): Promise<void> {
   // 1. Update cache
   const cached = await getCachedTaxRecords();
+  const deletedItem = cached.find((t) => t.id === taxId);
+  const targetVillageId = villageId || deletedItem?.villageId;
   const filtered = cached.filter((t) => t.id !== taxId);
   setCachedTaxRecords(filtered);
 
@@ -261,6 +282,9 @@ export async function deleteTaxRecord(taxId: string): Promise<void> {
   if (rtdb) {
     try {
       nonBlockingRTDB(remove(ref(rtdb, `property_taxes/${taxId}`)));
+      if (targetVillageId) {
+        nonBlockingRTDB(remove(ref(rtdb, `villages_data/${targetVillageId}/property_taxes/${taxId}`)));
+      }
     } catch (err) {
       console.warn('Notice deleting property tax from RTDB:', err);
     }

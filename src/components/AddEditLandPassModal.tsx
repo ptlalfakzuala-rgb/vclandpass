@@ -15,6 +15,7 @@ import {
   Trash2,
   Lock,
   Printer,
+  Camera,
   Eye,
   RefreshCw,
 } from 'lucide-react';
@@ -187,6 +188,7 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
     };
 
     onSave(payload, !!editingPass, editingPass?.id);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -541,8 +543,17 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
                       onClick={() => setIsScannerOpen(true)}
                       className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-transform active:scale-95"
                     >
-                      <Printer className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Rescan from Printer</span>
+                      <Camera className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>Rescan with Camera</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition-transform active:scale-95"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-neutral-600" />
+                      <span>Upload File</span>
                     </button>
 
                     <button
@@ -556,70 +567,48 @@ export const AddEditLandPassModal: React.FC<AddEditLandPassModalProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Option 1: Direct Scan from Printer / Scanner */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Option 1: Camera Scanner */}
                   <button
                     type="button"
                     onClick={() => setIsScannerOpen(true)}
-                    className="p-3.5 rounded-xl border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50/50 hover:from-emerald-100 hover:to-teal-100 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
+                    className="p-4 rounded-xl border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50/50 hover:from-emerald-100 hover:to-teal-100 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="p-2 bg-emerald-700 text-white rounded-lg shadow-xs group-hover:scale-110 transition-transform">
-                        <Printer className="w-4 h-4" />
+                        <Camera className="w-5 h-5" />
                       </div>
-                      <span className="text-[10px] bg-emerald-700 text-white font-bold px-1.5 py-0.5 rounded-full uppercase">
-                        Scan Command
+                      <span className="text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Camera Scan
                       </span>
                     </div>
                     <span className="text-xs font-bold text-neutral-900 block">
-                      Scan from Printer
+                      Camera Scanner
                     </span>
                     <span className="text-[11px] text-neutral-600 block mt-0.5 leading-snug">
-                      Flatbed platen / ADF scanner command
+                      Capture NOC document using device camera with live preview
                     </span>
                   </button>
 
-                  {/* Option 2: Scan from Local Printer Driver */}
+                  {/* Option 2: Upload Scanned File */}
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-3.5 rounded-xl border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50/50 hover:from-blue-100 hover:to-indigo-100 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
+                    className="p-4 rounded-xl border-2 border-neutral-300 bg-white hover:bg-neutral-50 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group hover:border-neutral-400"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <div className="p-2 bg-blue-700 text-white rounded-lg shadow-xs group-hover:scale-110 transition-transform">
-                        <Printer className="w-4 h-4" />
+                      <div className="p-2 bg-neutral-100 text-neutral-800 rounded-lg shadow-xs group-hover:scale-110 transition-transform">
+                        <Upload className="w-5 h-5" />
                       </div>
-                      <span className="text-[10px] bg-blue-700 text-white font-bold px-1.5 py-0.5 rounded-full uppercase">
-                        Local Driver
-                      </span>
-                    </div>
-                    <span className="text-xs font-bold text-neutral-900 block">
-                      Local Printer Driver
-                    </span>
-                    <span className="text-[11px] text-neutral-600 block mt-0.5 leading-snug">
-                      HP Scan, Canon IJ, Epson or Windows Scan
-                    </span>
-                  </button>
-
-                  {/* Option 3: Upload File / Photo */}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-3.5 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs cursor-pointer group"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="p-2 bg-neutral-100 text-neutral-700 rounded-lg group-hover:scale-110 transition-transform">
-                        <Upload className="w-4 h-4" />
-                      </div>
-                      <span className="text-[10px] bg-neutral-200 text-neutral-700 font-medium px-1.5 py-0.5 rounded-full">
-                        File
+                      <span className="text-[10px] bg-neutral-200 text-neutral-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Upload File
                       </span>
                     </div>
                     <span className="text-xs font-bold text-neutral-900 block">
                       Upload Scanned File
                     </span>
                     <span className="text-[11px] text-neutral-500 block mt-0.5 leading-snug">
-                      Select JPG, PNG, or PDF from device
+                      Select JPG, PNG, or PDF file from your device
                     </span>
                   </button>
                 </div>

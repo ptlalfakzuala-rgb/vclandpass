@@ -33,7 +33,7 @@ export const DocumentScannerModal: React.FC<DocumentScannerModalProps> = ({
   villageName = 'Village Council',
   defaultOwnerName = ''
 }) => {
-  const [scanMode, setScanMode] = useState<'flatbed' | 'camera' | 'import'>('flatbed');
+  const [scanMode, setScanMode] = useState<'flatbed' | 'camera' | 'import'>('camera');
   const [scannerDevice, setScannerDevice] = useState<string>('printer_auto');
   const [resolutionDpi, setResolutionDpi] = useState<number>(300);
   const [colorMode, setColorMode] = useState<'color' | 'grayscale' | 'bw'>('color');
@@ -68,6 +68,8 @@ export const DocumentScannerModal: React.FC<DocumentScannerModalProps> = ({
       setBrightness(100);
       setRotation(0);
       setCameraError('');
+      setScanMode('camera');
+      startCamera();
     } else {
       stopCamera();
     }
