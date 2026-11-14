@@ -170,6 +170,7 @@ export interface HouseholdFamily {
   economicStatus?: 'APL' | 'BPL' | 'AAY';
   linkedLandPassIds: string[]; // Land passes linked to this family
   notes?: string;
+  createdBy?: string;
   createdAt: string;
   updatedAt: string;
   syncedToCloud?: boolean;
@@ -213,6 +214,7 @@ export interface PropertyTaxRecord {
 
   dueDate: string; // Payment deadline
   remarks?: string;
+  createdBy?: string;
   createdAt: string;
   updatedAt: string;
   syncedToCloud?: boolean;

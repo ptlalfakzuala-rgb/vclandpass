@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   Receipt,
@@ -12,7 +12,7 @@ import {
   Landmark,
   Calculator
 } from 'lucide-react';
-import { PropertyTaxRecord, HouseholdFamily, VillageConfig, LandPass, PropertyCategory, AssessmentStatus, TaxPaymentStatus } from '../types';
+import { PropertyTaxRecord, HouseholdFamily, VillageConfig, PropertyCategory, AssessmentStatus, TaxPaymentStatus } from '../types';
 import { generateNextTaxInvoiceNumber } from '../services/ptmsService';
 
 interface AddEditTaxModalProps {
@@ -23,7 +23,7 @@ interface AddEditTaxModalProps {
   village: VillageConfig;
   existingTaxes: PropertyTaxRecord[];
   households: HouseholdFamily[];
-  landPasses: LandPass[];
+  currentUserId?: string;
 }
 
 export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
@@ -34,7 +34,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
   village,
   existingTaxes,
   households,
-  landPasses
+  currentUserId
 }) => {
   const [taxInvoiceNumber, setTaxInvoiceNumber] = useState<string>('');
   const [taxYear, setTaxYear] = useState<string>('2026-2027');
@@ -43,7 +43,6 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
   const [contactNumber, setContactNumber] = useState<string>('');
   const [vengSection, setVengSection] = useState<string>('');
   const [houseOrPlotNo, setHouseOrPlotNo] = useState<string>('');
-  const [linkedLandPassId, setLinkedLandPassId] = useState<string>('');
   const [propertyCategory, setPropertyCategory] = useState<PropertyCategory>('residential');
   const [assessmentStatus, setAssessmentStatus] = useState<AssessmentStatus>('assessed');
 
@@ -70,6 +69,31 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Strictly isolate Family IDs and Tax records to ONLY those created by this user / village council
+  const ownHouseholds = useMemo(() => {
+    const isGenericVillage = !village.id || village.id === 'village_default' || village.id === 'mizoram_generic';
+    return households.filter((h) => {
+      if (h.createdBy) {
+        if (currentUserId) return h.createdBy === currentUserId;
+        return h.villageId === village.id;
+      }
+      if (isGenericVillage && currentUserId) return false;
+      return h.villageId === village.id;
+    });
+  }, [households, village.id, currentUserId]);
+
+  const ownTaxes = useMemo(() => {
+    const isGenericVillage = !village.id || village.id === 'village_default' || village.id === 'mizoram_generic';
+    return existingTaxes.filter((t) => {
+      if (t.createdBy) {
+        if (currentUserId) return t.createdBy === currentUserId;
+        return t.villageId === village.id;
+      }
+      if (isGenericVillage && currentUserId) return false;
+      return t.villageId === village.id;
+    });
+  }, [existingTaxes, village.id, currentUserId]);
+
   useEffect(() => {
     if (editingTax) {
       setTaxInvoiceNumber(editingTax.taxInvoiceNumber || '');
@@ -79,7 +103,6 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       setContactNumber(editingTax.contactNumber || '');
       setVengSection(editingTax.vengSection || '');
       setHouseOrPlotNo(editingTax.houseOrPlotNo || '');
-      setLinkedLandPassId(editingTax.linkedLandPassId || '');
       setPropertyCategory(editingTax.propertyCategory || 'residential');
       setAssessmentStatus(editingTax.assessmentStatus || 'assessed');
       setLandAreaSqFt(String(editingTax.landAreaSqFt || 1200));
@@ -97,7 +120,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       setRemarks(editingTax.remarks || '');
     } else {
       const nextInv = generateNextTaxInvoiceNumber(
-        existingTaxes,
+        ownTaxes,
         village.taxInvoicePrefix || 'PTMS-VC-',
         '2026-2027',
         village.startingTaxInvoiceNumber || 1
@@ -109,7 +132,6 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       setContactNumber('');
       setVengSection('');
       setHouseOrPlotNo('');
-      setLinkedLandPassId('');
       setPropertyCategory('residential');
       setAssessmentStatus('assessed');
       setLandAreaSqFt('1200');
@@ -129,20 +151,17 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       setRemarks('');
     }
     setErrors({});
-  }, [editingTax, village, existingTaxes, isOpen]);
+  }, [editingTax, village, ownTaxes, isOpen]);
 
-  // Handle selecting a registered Family ID to auto-fill details
+  // Handle selecting a registered Family ID to auto-fill details (strictly from own council)
   const handleSelectFamily = (famId: string) => {
     setSelectedFamilyId(famId);
-    const found = households.find((h) => h.familyId === famId || h.id === famId);
+    const found = ownHouseholds.find((h) => h.familyId === famId || h.id === famId);
     if (found) {
       setHouseholdHeadName(found.headOfFamily);
       setContactNumber(found.contactNumber);
       setVengSection(found.vengSection);
       if (found.houseNumber) setHouseOrPlotNo(found.houseNumber);
-      if (found.linkedLandPassIds && found.linkedLandPassIds.length > 0) {
-        setLinkedLandPassId(found.linkedLandPassIds[0]);
-      }
     }
   };
 
@@ -206,9 +225,6 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
     const paidVal = parseFloat(amountPaid) || 0;
     const balance = Math.max(0, totalPayableAmount - paidVal);
 
-    // Find linked pass number if any
-    const linkedPass = landPasses.find((p) => p.id === linkedLandPassId);
-
     const record: PropertyTaxRecord = {
       id: editingTax ? editingTax.id : `TAX_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       taxInvoiceNumber: taxInvoiceNumber.trim(),
@@ -220,8 +236,6 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       contactNumber: contactNumber.trim(),
       vengSection: vengSection.trim(),
       houseOrPlotNo: houseOrPlotNo.trim() || undefined,
-      linkedLandPassId: linkedLandPassId || undefined,
-      linkedPassNumber: linkedPass?.passNumber || undefined,
       propertyCategory,
       assessmentStatus,
       landAreaSqFt: landAreaSqFt ? parseFloat(landAreaSqFt) : undefined,
@@ -240,6 +254,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       receiptNumber: paidVal > 0 ? `RCP-${taxInvoiceNumber.replace(/[^a-zA-Z0-9]/g, '')}` : undefined,
       dueDate,
       remarks: remarks.trim() || undefined,
+      createdBy: editingTax?.createdBy || currentUserId,
       createdAt: editingTax?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       syncedToCloud: false
@@ -345,7 +360,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
                     className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 text-xs font-bold font-mono text-emerald-950"
                   >
                     <option value="">-- Select Household Family ID --</option>
-                    {households.map((h) => (
+                    {ownHouseholds.map((h) => (
                       <option key={h.id} value={h.familyId}>
                         {h.familyId} &bull; {h.headOfFamily} ({h.vengSection})
                       </option>
@@ -396,7 +411,7 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
                 />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="text-xs font-semibold text-neutral-700 block mb-1">
                   Property Category
                 </label>
@@ -410,24 +425,6 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
                   <option value="agricultural_huan">Agricultural (Huan Ram)</option>
                   <option value="vacant_plot">Vacant Plot (Hmun Awl)</option>
                   <option value="mixed_use">Mixed Use</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-neutral-700 block mb-1">
-                  Linked Land Pass (Optional)
-                </label>
-                <select
-                  value={linkedLandPassId}
-                  onChange={(e) => setLinkedLandPassId(e.target.value)}
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 text-xs"
-                >
-                  <option value="">-- No Land Pass Linked --</option>
-                  {landPasses.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.passNumber} - {p.ownerName} ({p.passType === 'huan_ram' ? 'HR' : 'IH'})
-                    </option>
-                  ))}
                 </select>
               </div>
             </div>

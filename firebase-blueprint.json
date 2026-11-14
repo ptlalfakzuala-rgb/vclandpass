@@ -321,6 +321,11 @@
           "type": "number",
           "description": "Total family member count"
         },
+        "createdBy": {
+          "type": "string",
+          "description": "UID of the council user who registered this household",
+          "maxLength": 128
+        },
         "createdAt": {
           "type": "string",
           "description": "ISO timestamp of creation",
@@ -390,6 +395,11 @@
           "type": "string",
           "description": "Payment deadline date",
           "maxLength": 32
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "UID of the council user who issued this tax invoice",
+          "maxLength": 128
         },
         "createdAt": {
           "type": "string",

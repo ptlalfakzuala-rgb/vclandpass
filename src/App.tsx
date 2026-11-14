@@ -947,6 +947,7 @@ export default function App() {
         ...household,
         villageId: currentVillage.id,
         villageName: currentVillage.villageName,
+        createdBy: household.createdBy || editingHousehold?.createdBy || currentUser?.uid || (isFullAuthority ? 'authority' : undefined),
       };
 
       const saved = await saveHouseholdRecord(scopedHousehold);
@@ -1015,6 +1016,7 @@ export default function App() {
         ...tax,
         villageId: currentVillage.id,
         villageName: currentVillage.villageName,
+        createdBy: tax.createdBy || editingTax?.createdBy || currentUser?.uid || (isFullAuthority ? 'authority' : undefined),
       };
 
       const saved = await saveTaxRecord(scopedTax);
@@ -1093,12 +1095,6 @@ export default function App() {
 
   // Export Council Database JSON Archive
   const handleExportArchive = () => {
-    const perspectivePasses = passes.filter(
-      (p) =>
-        !p.villageId ||
-        p.villageId === currentVillage.id ||
-        (p.villageName && p.villageName.toLowerCase() === currentVillage.villageName.toLowerCase())
-    );
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(perspectivePasses, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
@@ -1109,34 +1105,54 @@ export default function App() {
     showNotification(`Council registry archive exported.`, 'success');
   };
 
+  const activeOwnerId = currentUser?.uid || (isFullAuthority ? 'authority' : undefined);
+
+  // Strict per-user & per-village isolation helper (never shares records across users or village councils)
+  const belongsToCurrentCouncil = (record: { createdBy?: string; villageId?: string }) => {
+    if (!currentUser && !isFullAuthority) return false;
+    const userVillageId = currentVillage.id;
+    const isGenericVillage = !userVillageId || userVillageId === 'village_default' || userVillageId === 'mizoram_generic';
+
+    if (record.createdBy) {
+      if (currentUser?.uid) return record.createdBy === currentUser.uid;
+      if (isFullAuthority) return record.createdBy === 'authority';
+      return false;
+    }
+
+    // Legacy records without createdBy: match ONLY exact non-generic villageId (never by villageName)
+    if (!isGenericVillage && record.villageId) {
+      return record.villageId === userVillageId;
+    }
+    if (!currentUser?.uid && isFullAuthority) {
+      return record.villageId === userVillageId;
+    }
+    return false;
+  };
+
   // Strictly scoped to user's dedicated village and profile (never shared with other users)
   const perspectivePasses = passes.filter((p) => {
     if (!currentUser && !isFullAuthority) return false;
-    // Master Full Authority (Key 785392) can view all passes for administration and verification
-    if (isFullAuthority) return true;
+    // Master Full Authority (Key 785392) can view all passes when not scoped to a secretary account
+    if (isFullAuthority && !currentUser) return true;
 
     // Never show sample/bootstrap passes from other villages to any real secretary
     if (p.createdBy === 'system_bootstrap') return false;
 
+    if (currentUser?.uid && p.createdBy) {
+      return p.createdBy === currentUser.uid;
+    }
+
     const userVillageId = currentUser?.villageId || currentVillage.id;
-    const userVillageName = currentVillage.villageName?.trim().toLowerCase();
-
-    // If pass has an explicit village ID, strictly match user's village council (do not connect with another user/village council)
-    if (p.villageId && userVillageId) {
-      if (p.villageId === userVillageId) return true;
-      return false;
+    const isGenericVillage = !userVillageId || userVillageId === 'village_default' || userVillageId === 'mizoram_generic';
+    if (!isGenericVillage && p.villageId) {
+      return p.villageId === userVillageId;
     }
-
-    // Match by village name
-    if (p.villageName && userVillageName && p.villageName.trim().toLowerCase() === userVillageName) {
-      return true;
-    }
-
-    // Pass created by this logged-in secretary
-    if (currentUser?.uid && p.createdBy === currentUser.uid) return true;
 
     return false;
   });
+
+  const perspectiveHouseholds = households.filter(belongsToCurrentCouncil);
+  const perspectiveTaxes = taxRecords.filter(belongsToCurrentCouncil);
 
   const filteredPasses = perspectivePasses.filter((p) => {
     const matchesFilter =
@@ -1668,9 +1684,9 @@ export default function App() {
             currentVillage={currentVillage}
             currentUser={currentUser}
             isAdmin={isAdmin}
-            households={households}
-            taxRecords={taxRecords}
-            landPasses={passes}
+            households={perspectiveHouseholds}
+            taxRecords={perspectiveTaxes}
+            landPasses={perspectivePasses}
             onOpenAddHousehold={() => {
               setEditingHousehold(null);
               setIsAddHouseholdOpen(true);
@@ -1750,7 +1766,7 @@ export default function App() {
         onSave={handleSavePass}
         editingPass={editingPass}
         village={currentVillage}
-        existingPasses={passes}
+        existingPasses={perspectivePasses}
       />
 
       {/* 3. User Profile Update Modal (Username, Password/Secret Key, Profile Photo) */}
@@ -1875,8 +1891,9 @@ export default function App() {
         onSave={handleSaveHousehold}
         editingHousehold={editingHousehold}
         village={currentVillage}
-        existingHouseholds={households}
-        allLandPasses={passes}
+        existingHouseholds={perspectiveHouseholds}
+        allLandPasses={perspectivePasses}
+        currentUserId={activeOwnerId}
       />
 
       {/* 15. Property Tax Assessment & Invoice Modal */}
@@ -1889,9 +1906,9 @@ export default function App() {
         onSave={handleSaveTaxRecord}
         editingTax={editingTax}
         village={currentVillage}
-        existingTaxes={taxRecords}
-        households={households}
-        landPasses={passes}
+        existingTaxes={perspectiveTaxes}
+        households={perspectiveHouseholds}
+        currentUserId={activeOwnerId}
       />
 
       {/* 16. Printable A4 Tax Receipt Modal */}

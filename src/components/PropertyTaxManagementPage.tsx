@@ -75,19 +75,33 @@ export const PropertyTaxManagementPage: React.FC<PropertyTaxManagementPageProps>
     'family_id_asc' | 'family_id_desc' | 'head_asc' | 'members_desc' | 'veng_asc' | 'date_desc'
   >('family_id_asc');
 
-  // Filtered households for current village
+  // Strictly isolated households for current user / village council (never join by villageName)
   const villageHouseholds = useMemo(() => {
-    return households.filter(
-      (h) => h.villageId === currentVillage.id || h.villageName?.toLowerCase() === currentVillage.villageName.toLowerCase()
-    );
-  }, [households, currentVillage]);
+    const uid = currentUser?.uid;
+    const isGenericVillage = !currentVillage.id || currentVillage.id === 'village_default' || currentVillage.id === 'mizoram_generic';
+    return households.filter((h) => {
+      if (h.createdBy) {
+        if (uid) return h.createdBy === uid;
+        return h.villageId === currentVillage.id;
+      }
+      if (isGenericVillage && uid) return false;
+      return h.villageId === currentVillage.id;
+    });
+  }, [households, currentVillage.id, currentUser?.uid]);
 
-  // Filtered tax records for current village
+  // Strictly isolated tax records for current user / village council (never join by villageName)
   const villageTaxes = useMemo(() => {
-    return taxRecords.filter(
-      (t) => t.villageId === currentVillage.id || t.villageName?.toLowerCase() === currentVillage.villageName.toLowerCase()
-    );
-  }, [taxRecords, currentVillage]);
+    const uid = currentUser?.uid;
+    const isGenericVillage = !currentVillage.id || currentVillage.id === 'village_default' || currentVillage.id === 'mizoram_generic';
+    return taxRecords.filter((t) => {
+      if (t.createdBy) {
+        if (uid) return t.createdBy === uid;
+        return t.villageId === currentVillage.id;
+      }
+      if (isGenericVillage && uid) return false;
+      return t.villageId === currentVillage.id;
+    });
+  }, [taxRecords, currentVillage.id, currentUser?.uid]);
 
   // Calculate Metrics
   const metrics = useMemo(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   Users2,
@@ -30,6 +30,7 @@ interface AddEditHouseholdModalProps {
   village: VillageConfig;
   existingHouseholds: HouseholdFamily[];
   allLandPasses: LandPass[];
+  currentUserId?: string;
 }
 
 export const AddEditHouseholdModal: React.FC<AddEditHouseholdModalProps> = ({
@@ -39,7 +40,8 @@ export const AddEditHouseholdModal: React.FC<AddEditHouseholdModalProps> = ({
   editingHousehold,
   village,
   existingHouseholds,
-  allLandPasses
+  allLandPasses,
+  currentUserId
 }) => {
   const [familyId, setFamilyId] = useState<string>('');
   const [headOfFamily, setHeadOfFamily] = useState<string>('');
@@ -67,6 +69,19 @@ export const AddEditHouseholdModal: React.FC<AddEditHouseholdModalProps> = ({
   const [passSearchQuery, setPassSearchQuery] = useState<string>('');
   const [selectedPassDetail, setSelectedPassDetail] = useState<LandPass | null>(null);
 
+  // Strictly isolate households for sequential Family ID calculation to ONLY current user / village council
+  const ownHouseholds = useMemo(() => {
+    const isGenericVillage = !village.id || village.id === 'village_default' || village.id === 'mizoram_generic';
+    return existingHouseholds.filter((h) => {
+      if (h.createdBy) {
+        if (currentUserId) return h.createdBy === currentUserId;
+        return h.villageId === village.id;
+      }
+      if (isGenericVillage && currentUserId) return false;
+      return h.villageId === village.id;
+    });
+  }, [existingHouseholds, village.id, currentUserId]);
+
   useEffect(() => {
     setPassSearchQuery('');
     setSelectedPassDetail(null);
@@ -84,9 +99,9 @@ export const AddEditHouseholdModal: React.FC<AddEditHouseholdModalProps> = ({
       setNotes(editingHousehold.notes || '');
       setMembers(editingHousehold.members || []);
     } else {
-      // Auto-generate sequential Family ID based on village prefix
+      // Auto-generate sequential Family ID based on village prefix (strictly scoped to own council)
       const nextId = generateNextFamilyId(
-        existingHouseholds,
+        ownHouseholds,
         village.familyIdPrefix || `${village.villageName ? village.villageName.substring(0, 3).toUpperCase() : 'VC'}-FAM-`,
         village.startingFamilyNumber || 1
       );
@@ -104,7 +119,7 @@ export const AddEditHouseholdModal: React.FC<AddEditHouseholdModalProps> = ({
       setMembers([]);
     }
     setErrors({});
-  }, [editingHousehold, village, existingHouseholds, isOpen]);
+  }, [editingHousehold, village, ownHouseholds, isOpen]);
 
   if (!isOpen) return null;
 
@@ -168,6 +183,7 @@ export const AddEditHouseholdModal: React.FC<AddEditHouseholdModalProps> = ({
       members,
       linkedLandPassIds,
       notes: notes.trim() || undefined,
+      createdBy: editingHousehold?.createdBy || currentUserId,
       createdAt: editingHousehold?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       syncedToCloud: false
@@ -177,10 +193,14 @@ export const AddEditHouseholdModal: React.FC<AddEditHouseholdModalProps> = ({
     onClose();
   };
 
-  // Village specific land passes to link
-  const villagePasses = allLandPasses.filter(
-    (p) => p.villageId === village.id || p.villageName.toLowerCase() === village.villageName.toLowerCase()
-  );
+  // Strictly village & user specific land passes (never join with another user/village council)
+  const villagePasses = allLandPasses.filter((p) => {
+    if (p.createdBy === 'system_bootstrap') return false;
+    if (currentUserId && p.createdBy) {
+      return p.createdBy === currentUserId;
+    }
+    return p.villageId === village.id;
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-xs overflow-y-auto animate-backdrop-fade">
