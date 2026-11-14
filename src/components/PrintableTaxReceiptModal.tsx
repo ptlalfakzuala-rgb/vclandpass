@@ -96,9 +96,6 @@ export const PrintableTaxReceiptModal: React.FC<PrintableTaxReceiptModalProps> =
               )}
 
               <div>
-                <span className="text-[10px] font-mono tracking-widest uppercase text-emerald-800 font-bold block">
-                  GOVERNMENT OF MIZORAM JURISDICTION
-                </span>
                 <h1 className="text-xl sm:text-2xl font-serif font-black text-neutral-900 uppercase tracking-wide">
                   {village.villageName ? `${village.villageName} VILLAGE COUNCIL` : 'VILLAGE COUNCIL, MIZORAM'}
                 </h1>

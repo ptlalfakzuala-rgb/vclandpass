@@ -10,7 +10,9 @@ import {
   Hash,
   Users2,
   Landmark,
-  Calculator
+  Calculator,
+  Search,
+  CheckCircle2
 } from 'lucide-react';
 import { PropertyTaxRecord, HouseholdFamily, VillageConfig, PropertyCategory, AssessmentStatus, TaxPaymentStatus } from '../types';
 import { generateNextTaxInvoiceNumber } from '../services/ptmsService';
@@ -38,7 +40,10 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
 }) => {
   const [taxInvoiceNumber, setTaxInvoiceNumber] = useState<string>('');
   const [taxYear, setTaxYear] = useState<string>('2026-2027');
+  const [familyIdNumberInput, setFamilyIdNumberInput] = useState<string>('');
   const [selectedFamilyId, setSelectedFamilyId] = useState<string>('');
+  const [matchedHousehold, setMatchedHousehold] = useState<HouseholdFamily | null>(null);
+  const [familyLookupStatus, setFamilyLookupStatus] = useState<'idle' | 'found' | 'not_found'>('idle');
   const [householdHeadName, setHouseholdHeadName] = useState<string>('');
   const [contactNumber, setContactNumber] = useState<string>('');
   const [vengSection, setVengSection] = useState<string>('');
@@ -94,11 +99,56 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
     });
   }, [existingTaxes, village.id, currentUserId]);
 
+  const familyIdPrefix = useMemo(() => {
+    if (village.familyIdPrefix && village.familyIdPrefix.trim()) {
+      return village.familyIdPrefix.trim();
+    }
+    const cleanInit = (village.villageName?.replace(/[^a-zA-Z]/g, '').substring(0, 3) || 'VC').toUpperCase();
+    return `${cleanInit}-FAM-`;
+  }, [village.familyIdPrefix, village.villageName]);
+
+  // Helper to extract just the numeric sequence from a full Family ID (e.g. "SPH-FAM-0001" -> "0001")
+  const extractFamilyNumber = (fullId: string): string => {
+    const match = (fullId || '').match(/(\d+)$/);
+    return match ? match[1] : (fullId || '').replace(/\D/g, '');
+  };
+
+  // Match a household from ownHouseholds using ONLY the entered numeric portion
+  const findHouseholdByNumber = (numStr: string): HouseholdFamily | undefined => {
+    const cleanNum = numStr.replace(/\D/g, '');
+    if (!cleanNum) return undefined;
+    const padded = cleanNum.padStart(4, '0');
+    const numericVal = parseInt(cleanNum, 10);
+
+    // 1. Exact padded or raw string match with prefix or trailing digits
+    const exactMatch = ownHouseholds.find((h) => {
+      const trailing = extractFamilyNumber(h.familyId);
+      return (
+        h.familyId.toLowerCase() === `${familyIdPrefix}${cleanNum}`.toLowerCase() ||
+        h.familyId.toLowerCase() === `${familyIdPrefix}${padded}`.toLowerCase() ||
+        trailing === cleanNum ||
+        trailing === padded
+      );
+    });
+    if (exactMatch) return exactMatch;
+
+    // 2. Fallback numeric value equality (e.g. typing "1" matches "0001")
+    return ownHouseholds.find((h) => {
+      const trailing = extractFamilyNumber(h.familyId);
+      return trailing ? parseInt(trailing, 10) === numericVal : false;
+    });
+  };
+
   useEffect(() => {
     if (editingTax) {
       setTaxInvoiceNumber(editingTax.taxInvoiceNumber || '');
       setTaxYear(editingTax.taxYear || '2026-2027');
+      const rawNum = extractFamilyNumber(editingTax.familyId || '');
+      setFamilyIdNumberInput(rawNum);
       setSelectedFamilyId(editingTax.familyId || '');
+      const existingMatch = findHouseholdByNumber(rawNum);
+      setMatchedHousehold(existingMatch || null);
+      setFamilyLookupStatus(existingMatch ? 'found' : 'idle');
       setHouseholdHeadName(editingTax.householdHeadName || '');
       setContactNumber(editingTax.contactNumber || '');
       setVengSection(editingTax.vengSection || '');
@@ -127,7 +177,10 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
       );
       setTaxInvoiceNumber(nextInv);
       setTaxYear('2026-2027');
+      setFamilyIdNumberInput('');
       setSelectedFamilyId('');
+      setMatchedHousehold(null);
+      setFamilyLookupStatus('idle');
       setHouseholdHeadName('');
       setContactNumber('');
       setVengSection('');
@@ -153,15 +206,40 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
     setErrors({});
   }, [editingTax, village, ownTaxes, isOpen]);
 
-  // Handle selecting a registered Family ID to auto-fill details (strictly from own council)
-  const handleSelectFamily = (famId: string) => {
-    setSelectedFamilyId(famId);
-    const found = ownHouseholds.find((h) => h.familyId === famId || h.id === famId);
+  // Handle number-only Family ID input and auto-fetch household details from own council
+  const applyFamilyLookup = (numOnly: string) => {
+    const cleanNum = numOnly.replace(/\D/g, '');
+    setFamilyIdNumberInput(cleanNum);
+
+    if (!cleanNum) {
+      setSelectedFamilyId('');
+      setMatchedHousehold(null);
+      setFamilyLookupStatus('idle');
+      setHouseholdHeadName('');
+      setContactNumber('');
+      setVengSection('');
+      setHouseOrPlotNo('');
+      return;
+    }
+
+    const found = findHouseholdByNumber(cleanNum);
     if (found) {
+      setMatchedHousehold(found);
+      setFamilyLookupStatus('found');
+      setSelectedFamilyId(found.familyId);
       setHouseholdHeadName(found.headOfFamily);
       setContactNumber(found.contactNumber);
       setVengSection(found.vengSection);
       if (found.houseNumber) setHouseOrPlotNo(found.houseNumber);
+      setErrors((prev) => ({ ...prev, selectedFamilyId: '' }));
+    } else {
+      setMatchedHousehold(null);
+      setFamilyLookupStatus('not_found');
+      setSelectedFamilyId(`${familyIdPrefix}${cleanNum.padStart(4, '0')}`);
+      setHouseholdHeadName('');
+      setContactNumber('');
+      setVengSection('');
+      setHouseOrPlotNo('');
     }
   };
 
@@ -211,7 +289,9 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!taxInvoiceNumber.trim()) errs.taxInvoiceNumber = 'Invoice Number is required';
-    if (!selectedFamilyId.trim()) errs.selectedFamilyId = 'Family ID selection is required';
+    if (!familyIdNumberInput.trim() || !selectedFamilyId.trim()) {
+      errs.selectedFamilyId = 'Family ID number is required';
+    }
     if (!householdHeadName.trim()) errs.householdHeadName = 'Household head name is required';
     if (!dueDate.trim()) errs.dueDate = 'Due date is required';
     setErrors(errs);
@@ -345,28 +425,51 @@ export const AddEditTaxModal: React.FC<AddEditTaxModalProps> = ({
           {/* Section 1: Household Family Selection & Auto-fill */}
           <div className="space-y-4">
             <label className="text-xs font-bold uppercase tracking-wider text-neutral-800 block border-b border-neutral-200 pb-1">
-              1. Household Family Identification (Select Family ID)
+              1. Household Family Identification (Enter Family ID Number)
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-neutral-700 block mb-1">
-                  Family ID * (from Village Census)
+                  Family ID Number * (Number only, without prefix)
                 </label>
-                <div className="relative">
-                  <select
-                    value={selectedFamilyId}
-                    onChange={(e) => handleSelectFamily(e.target.value)}
-                    className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 text-xs font-bold font-mono text-emerald-950"
+                <div className="flex items-stretch gap-1.5">
+                  <div className="relative flex-1">
+                    <Hash className="w-3.5 h-3.5 text-emerald-700 absolute left-3 top-2.5 pointer-events-none" />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      required
+                      value={familyIdNumberInput}
+                      onChange={(e) => applyFamilyLookup(e.target.value)}
+                      placeholder="e.g. 0001"
+                      className="w-full pl-8 pr-3 py-2 bg-white border border-neutral-300 rounded-xl focus:ring-2 focus:ring-emerald-500 text-xs font-bold font-mono text-emerald-950"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => applyFamilyLookup(familyIdNumberInput)}
+                    className="px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shrink-0 shadow-2xs"
+                    title="Fetch Household Details"
                   >
-                    <option value="">-- Select Household Family ID --</option>
-                    {ownHouseholds.map((h) => (
-                      <option key={h.id} value={h.familyId}>
-                        {h.familyId} &bull; {h.headOfFamily} ({h.vengSection})
-                      </option>
-                    ))}
-                  </select>
+                    <Search className="w-3.5 h-3.5" />
+                    <span>Fetch</span>
+                  </button>
                 </div>
+
+                {familyLookupStatus === 'found' && matchedHousehold && (
+                  <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>Fetched: {matchedHousehold.familyId} &bull; {matchedHousehold.headOfFamily}</span>
+                  </p>
+                )}
+                {familyLookupStatus === 'not_found' && familyIdNumberInput && (
+                  <p className="text-[11px] text-amber-700 font-medium mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>No registered household found for #{familyIdNumberInput} ({familyIdPrefix}{familyIdNumberInput.padStart(4, '0')})</span>
+                  </p>
+                )}
                 {errors.selectedFamilyId && <p className="text-xs text-rose-600 mt-1">{errors.selectedFamilyId}</p>}
               </div>
 
